@@ -32,11 +32,11 @@ export default function PlatformLayout({ children }) {
         nextUser = {
           id: data.id,
           email: data.email,
-          fullName: data.fullName,
+          fullName: data.fullName || data.full_name || '',
           role: data.role,
           whatsapp: data.whatsapp,
-          onboardingCompleted: Boolean(data.onboardingCompleted),
-          avatarUrl: data.avatarUrl || data.profile?.avatarUrl || null,
+          onboardingCompleted: Boolean(data.onboardingCompleted || data.onboarding_completed || data.profile?.onboardingCompleted || data.profile?.onboarding_completed),
+          avatarUrl: data.avatarUrl || data.avatar_url || data.profile?.avatarUrl || data.profile?.avatar_url || null,
         };
         localStorage.setItem('bankerpro_user', JSON.stringify(nextUser));
         incomplete = !isOnboardingCompleted(data);
