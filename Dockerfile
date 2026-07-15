@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:18-alpine AS build
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
@@ -12,11 +12,11 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Run
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 # Copy dependency manifests and installed node_modules
 COPY --from=build /app/package*.json ./
