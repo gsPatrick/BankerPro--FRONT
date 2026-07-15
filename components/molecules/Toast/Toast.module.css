@@ -1,0 +1,82 @@
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-xl);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border-strong);
+  max-width: 90%;
+  animation: slideUp var(--duration-base) var(--ease-spring);
+  pointer-events: auto;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 800;
+  background: currentColor;
+  color: var(--color-canvas);
+  flex-shrink: 0;
+}
+
+.message {
+  flex: 1;
+  color: var(--color-text-primary);
+}
+
+.close {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+  transition: color var(--duration-fast) var(--ease-out-expo);
+  padding: var(--space-1);
+}
+.close:hover {
+  color: var(--color-text-primary);
+}
+
+/* Types */
+.info {
+  background: rgba(30, 30, 30, 0.9);
+  color: var(--color-info);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.success {
+  background: rgba(30, 30, 30, 0.9);
+  color: var(--color-success);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.error {
+  background: rgba(30, 30, 30, 0.9);
+  color: var(--color-danger);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.warning {
+  background: rgba(30, 30, 30, 0.9);
+  color: var(--color-warning);
+  border-color: rgba(245, 158, 11, 0.3);
+}

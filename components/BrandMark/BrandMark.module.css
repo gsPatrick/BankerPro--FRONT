@@ -1,0 +1,15 @@
+.root {
+  display: block;
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
+  overflow: visible;
+}
+
+.frame {
+  fill: var(--bm-frame, #f2f4f7);
+}
+
+.hole {
+  fill: var(--bm-hole, #0e0e0e);
+}

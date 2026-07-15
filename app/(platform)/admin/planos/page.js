@@ -1,0 +1,382 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Button from '@/components/atoms/Button/Button';
+import Spinner from '@/components/atoms/Spinner/Spinner';
+import Toast from '@/components/molecules/Toast/Toast';
+import Modal from '@/components/organisms/Modal/Modal';
+import { api } from '@/lib/api';
+import { pickField } from '@/lib/normalize';
+import styles from '../admin.module.css';
+
+const FEATURE_OPTIONS = [
+  'Copiloto limitado',
+  'Copiloto completo',
+  'Lista de Oportunidades',
+  'Gerador de abordagens',
+  'Copiloto no WhatsApp',
+  'Agenda e metas',
+  'Anotações rápidas',
+  'Tudo do Pro',
+  'Múltiplos usuários',
+  'Relatórios consolidados',
+];
+
+const SIM_LIMIT_FEATURES = [
+  '10 Simulações/mês',
+  'Simulações ilimitadas',
+];
+
+function cleanFeatures(list = []) {
+  return (Array.isArray(list) ? list : []).filter(
+    (item) => !SIM_LIMIT_FEATURES.includes(item)
+  );
+}
+
+const EMPTY = {
+  key: '',
+  name: '',
+  price: 0,
+  limitSimulations: 10,
+  features: [],
+};
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M5 12.5 10 17l9-11"
+        stroke="currentColor"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function normalizePlan(raw = {}) {
+  return {
+    id: pickField(raw, 'id'),
+    key: pickField(raw, 'key') || '',
+    name: pickField(raw, 'name') || '',
+    price: Number(pickField(raw, 'price') ?? 0),
+    limitSimulations: Number(
+      pickField(raw, 'limitSimulations', 'limit_simulations') ?? 10
+    ),
+    features: Array.isArray(raw.features) ? raw.features : [],
+  };
+}
+
+export default function AdminPlanosPage() {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [plans, setPlans] = useState([]);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState(EMPTY);
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ visible: true, message, type });
+    setTimeout(() => setToast((c) => ({ ...c, visible: false })), 3500);
+  };
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get('/admin/plans');
+      const list = res?.data || res || [];
+      setPlans((Array.isArray(list) ? list : []).map(normalizePlan));
+    } catch (err) {
+      showToast(err.message || 'Erro ao carregar planos.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const unlimited = Number(form.limitSimulations) < 0;
+  const featureChoices = [
+    ...FEATURE_OPTIONS,
+    ...(form.features || []).filter((item) => !FEATURE_OPTIONS.includes(item)),
+  ];
+
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(EMPTY);
+    setFormOpen(true);
+  };
+
+  const openEdit = (plan) => {
+    setEditingId(plan.id);
+    setForm({
+      key: plan.key,
+      name: plan.name,
+      price: plan.price,
+      limitSimulations: plan.limitSimulations,
+      features: cleanFeatures(plan.features),
+    });
+    setFormOpen(true);
+  };
+
+  const toggleUnlimited = () => {
+    setForm((current) => ({
+      ...current,
+      limitSimulations:
+        Number(current.limitSimulations) < 0 ? 10 : -1,
+    }));
+  };
+
+  const toggleFeature = (feature) => {
+    setForm((current) => {
+      const selected = Array.isArray(current.features) ? current.features : [];
+      const exists = selected.includes(feature);
+      return {
+        ...current,
+        features: exists
+          ? selected.filter((item) => item !== feature)
+          : [...selected, feature],
+      };
+    });
+  };
+
+  const save = async () => {
+    const payload = {
+      key: form.key.trim(),
+      name: form.name.trim(),
+      price: Number(form.price) || 0,
+      limitSimulations: unlimited ? -1 : Math.max(0, Number(form.limitSimulations) || 0),
+      features: cleanFeatures(form.features),
+    };
+    if (!payload.key || !payload.name) {
+      showToast('Informe key e nome.', 'error');
+      return;
+    }
+    setSaving(true);
+    try {
+      if (editingId) {
+        await api.put(`/admin/plans/${editingId}`, payload);
+        showToast('Plano atualizado.');
+      } else {
+        await api.post('/admin/plans', payload);
+        showToast('Plano criado.');
+      }
+      setFormOpen(false);
+      load();
+    } catch (err) {
+      showToast(err.message || 'Erro ao salvar.', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = async (plan) => {
+    if (!window.confirm(`Excluir plano ${plan.name}?`)) return;
+    try {
+      await api.delete(`/admin/plans/${plan.id}`);
+      showToast('Plano removido.');
+      load();
+    } catch (err) {
+      showToast(err.message || 'Erro ao excluir.', 'error');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.loading}>
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div>
+          <p className={styles.eyebrow}>Administração</p>
+          <h1 className={styles.title}>Planos</h1>
+          <p className={styles.subtitle}>
+            Gerencie planos de assinatura, preço e limite de simulações.
+          </p>
+        </div>
+        <Button type="button" variant="primary" onClick={openCreate}>
+          Novo plano
+        </Button>
+      </header>
+
+      <section className={styles.panel}>
+        {plans.length === 0 ? (
+          <p className={styles.empty}>Nenhum plano cadastrado.</p>
+        ) : (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Key</th>
+                  <th>Nome</th>
+                  <th>Preço</th>
+                  <th>Limite sims</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {plans.map((plan) => (
+                  <tr key={plan.id}>
+                    <td>
+                      <strong>{plan.key}</strong>
+                    </td>
+                    <td>{plan.name}</td>
+                    <td>
+                      {Number(plan.price).toLocaleString('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      })}
+                    </td>
+                    <td>
+                      {plan.limitSimulations < 0
+                        ? 'Ilimitado'
+                        : plan.limitSimulations}
+                    </td>
+                    <td>
+                      <div className={styles.actions}>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => openEdit(plan)}
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="danger"
+                          onClick={() => remove(plan)}
+                        >
+                          Excluir
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <Modal
+        isOpen={formOpen}
+        onClose={() => setFormOpen(false)}
+        title={editingId ? 'Editar plano' : 'Novo plano'}
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={() => setFormOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="button" variant="primary" onClick={save} disabled={saving}>
+              {saving ? 'Salvando…' : 'Salvar'}
+            </Button>
+          </>
+        }
+      >
+        <div className={styles.formGrid}>
+          <div className={styles.formRow}>
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>Key</span>
+              <input
+                className={styles.input}
+                value={form.key}
+                disabled={Boolean(editingId)}
+                onChange={(e) => setForm((f) => ({ ...f, key: e.target.value }))}
+              />
+            </label>
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>Nome</span>
+              <input
+                className={styles.input}
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </label>
+          </div>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>Preço</span>
+            <input
+              className={styles.input}
+              type="number"
+              step="0.01"
+              value={form.price}
+              onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+            />
+          </label>
+          <div className={styles.field}>
+            <span className={styles.fieldLabel}>Limite de simulações</span>
+            <div className={styles.limitRow}>
+              <input
+                className={styles.input}
+                type="number"
+                min={0}
+                disabled={unlimited}
+                value={unlimited ? '' : form.limitSimulations}
+                placeholder={unlimited ? 'Ilimitado' : 'Ex: 10'}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, limitSimulations: e.target.value }))
+                }
+              />
+              <button
+                type="button"
+                className={`${styles.limitToggle} ${
+                  unlimited ? styles.limitToggleActive : ''
+                }`}
+                onClick={toggleUnlimited}
+              >
+                Ilimitado
+              </button>
+            </div>
+            <p className={styles.hint}>
+              {unlimited
+                ? 'Plano sem limite de simulações.'
+                : 'Defina um número ou ative Ilimitado.'}
+            </p>
+          </div>
+          <div className={styles.field}>
+            <span className={styles.fieldLabel}>Features</span>
+            <div className={styles.checkGrid}>
+              {featureChoices.map((feature) => {
+                const active = (form.features || []).includes(feature);
+                return (
+                  <button
+                    key={feature}
+                    type="button"
+                    className={`${styles.checkItem} ${
+                      active ? styles.checkItemActive : ''
+                    }`}
+                    onClick={() => toggleFeature(feature)}
+                    aria-pressed={active}
+                  >
+                    <span className={styles.checkBox}>
+                      {active ? <CheckIcon /> : null}
+                    </span>
+                    {feature}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast((c) => ({ ...c, visible: false }))}
+      />
+    </div>
+  );
+}

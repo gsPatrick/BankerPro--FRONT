@@ -1,0 +1,199 @@
+.section {
+  position: relative;
+  padding:
+    clamp(72px, 10vw, 120px)
+    clamp(20px, 4vw, 48px)
+    clamp(80px, 11vw, 130px);
+  background: #000000;
+  color: #ffffff;
+}
+
+.inner {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: clamp(32px, 5vw, 48px);
+}
+
+.copy {
+  max-width: 30ch;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(242, 244, 247, 0.45);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.text {
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgba(242, 244, 247, 0.62);
+  max-width: 38ch;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px;
+  border-radius: 28px;
+  border: 1px solid rgba(242, 244, 247, 0.12);
+  background:
+    linear-gradient(165deg, rgba(242, 244, 247, 0.05), transparent 45%),
+    #111113;
+}
+
+.cardReady {
+  border-color: rgba(242, 244, 247, 0.28);
+  background:
+    linear-gradient(165deg, rgba(242, 244, 247, 0.12), transparent 50%),
+    #17191d;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+}
+
+/* Image placeholder slot */
+.logoSlot {
+  aspect-ratio: 1;
+  width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #000000;
+  border: 1px solid rgba(242, 244, 247, 0.08);
+  display: grid;
+  place-items: center;
+}
+
+.logoSlotReady {
+  background:
+    linear-gradient(160deg, rgba(242, 244, 247, 0.16), rgba(242, 244, 247, 0.04));
+}
+
+.logoImg {
+  width: 58%;
+  height: 58%;
+  max-width: none;
+  object-fit: contain;
+  display: block;
+}
+
+.pwaMark {
+  width: clamp(56px, 12vw, 72px);
+  height: clamp(56px, 12vw, 72px);
+  font-size: clamp(56px, 12vw, 72px);
+}
+
+.cardMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 4px 4px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.cardBody {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: rgba(242, 244, 247, 0.58);
+}
+
+.badgeSoon,
+.badgeReady {
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.badgeSoon {
+  color: rgba(242, 244, 247, 0.7);
+  border: 1px solid rgba(242, 244, 247, 0.16);
+  background: rgba(242, 244, 247, 0.05);
+}
+
+.badgeReady {
+  color: #0e0e0e;
+  background: linear-gradient(160deg, #f7f8fa, #c9ced6);
+}
+
+.installBtn {
+  align-self: flex-start;
+  margin-top: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #0e0e0e;
+  background: linear-gradient(160deg, #f7f8fa, #c9ced6);
+  cursor: pointer;
+}
+
+.installBtn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.installSteps {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(242, 244, 247, 0.68);
+}
+
+.installSteps strong {
+  color: #f2f4f7;
+  font-weight: 700;
+}
+
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: 1fr;
+    max-width: 360px;
+  }
+
+  .logoSlot {
+    aspect-ratio: 16 / 11;
+  }
+
+  .logoImg {
+    width: 42%;
+    height: 70%;
+  }
+}

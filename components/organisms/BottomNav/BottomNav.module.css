@@ -1,0 +1,108 @@
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(14, 14, 14, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--color-border);
+  height: calc(var(--bottom-nav-height) + var(--safe-bottom));
+  min-height: var(--bottom-nav-height);
+  padding-bottom: var(--safe-bottom);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  height: var(--bottom-nav-height);
+  justify-content: space-around;
+  align-items: stretch;
+  padding: 0 var(--space-1);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  color: var(--color-text-tertiary);
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  position: relative;
+  transition: color var(--duration-base) var(--ease-out-expo);
+  height: var(--bottom-nav-height);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--duration-base) var(--ease-spring);
+}
+
+.label {
+  transition: transform var(--duration-base) var(--ease-out-expo);
+  line-height: 1;
+}
+
+.active {
+  color: var(--color-text-primary);
+}
+
+.active .icon {
+  transform: translateY(-1px);
+  color: var(--color-accent-light);
+}
+
+.indicator {
+  position: absolute;
+  top: 0;
+  width: 20px;
+  height: 3px;
+  background: var(--color-accent-light);
+  border-radius: 0 0 3px 3px;
+  box-shadow: 0 1px 8px var(--color-accent-glow);
+  animation: scaleIn var(--duration-base) var(--ease-out-expo);
+}
+
+.centerItem {
+  justify-content: flex-start;
+  padding-top: 6px;
+}
+
+.centerIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-accent-light);
+  color: var(--color-accent-ink, #0E0E0E);
+  box-shadow: 0 8px 20px rgba(242, 244, 247, 0.22);
+  transform: translateY(-18px);
+  border: 3px solid var(--color-canvas);
+}
+
+.centerItem.active .centerIcon,
+.centerItem:hover .centerIcon {
+  transform: translateY(-18px) scale(1.04);
+  color: var(--color-accent-ink, #0E0E0E);
+}
+
+.centerItem .label {
+  display: none;
+}
+
+@keyframes scaleIn {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}

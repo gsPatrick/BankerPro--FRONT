@@ -1,0 +1,65 @@
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(201, 206, 214, 0.12), transparent),
+    #0e0e0e;
+  color: #f2f4f7;
+}
+
+.panel {
+  width: min(420px, 100%);
+  display: grid;
+  gap: 12px;
+  text-align: center;
+}
+
+.markIcon {
+  width: 56px;
+  height: 56px;
+  font-size: 56px;
+  margin: 0 auto 4px;
+}
+
+.mark {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(242, 244, 247, 0.5);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(242, 244, 247, 0.62);
+}
+
+.cta {
+  margin-top: 10px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  color: #0e0e0e;
+  background: linear-gradient(160deg, #f7f8fa, #c9ced6);
+}

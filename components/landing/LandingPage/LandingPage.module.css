@@ -1,0 +1,14 @@
+.page {
+  position: relative;
+  min-height: 100dvh;
+  /* Transparent so the fixed footer landscape can reveal underneath */
+  background: transparent;
+  color: var(--color-text-primary);
+  /* Do NOT set overflow here — it breaks position:sticky on the hero */
+}
+
+.main {
+  position: relative;
+  z-index: 2;
+  background: #000000;
+}

@@ -1,0 +1,176 @@
+/* GIC-style floating footer — reveals landscape underneath via margin-bottom */
+.footer {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  background: #f2f4f7;
+  color: #0e0e0e;
+  margin-bottom: 400px;
+  border-radius: 28px 28px 0 0;
+}
+
+.container {
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+  padding:
+    clamp(48px, 7vw, 80px)
+    clamp(20px, 4vw, 48px)
+    clamp(28px, 4vw, 40px);
+}
+
+.careersBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 640px;
+  margin-inline: auto;
+  gap: 20px;
+}
+
+.mark {
+  width: 48px;
+  height: 48px;
+  font-size: 48px;
+  --bm-frame: #0e0e0e;
+  --bm-hole: #f2f4f7;
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  color: #0e0e0e;
+  max-width: 18ch;
+  text-wrap: balance;
+}
+
+.careersText {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: #4a4e55;
+  max-width: 42ch;
+}
+
+.careersLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #0e0e0e;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.careersLink span:first-child {
+  border-bottom: 1px solid rgba(14, 14, 14, 0.35);
+  padding-bottom: 2px;
+  transition: border-color 0.2s ease;
+}
+
+.careersLink:hover span:first-child {
+  border-color: #0e0e0e;
+}
+
+.careersArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(14, 14, 14, 0.2);
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.bottom {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding-top: clamp(56px, 8vw, 96px);
+}
+
+.navList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navLink {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a3e45;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.navLink:hover {
+  opacity: 0.7;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.loginBtn,
+.signupBtn {
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.loginBtn {
+  border: 1px solid rgba(14, 14, 14, 0.14);
+  background: #ffffff;
+  color: #0e0e0e;
+}
+
+.signupBtn {
+  border: 1px solid transparent;
+  background: #0e0e0e;
+  color: #f2f4f7;
+}
+
+@media (min-width: 768px) {
+  .bottom {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .navList {
+    justify-content: flex-start;
+  }
+
+  .actions {
+    justify-content: flex-end;
+  }
+}
+
+@media (min-width: 1280px) {
+  .footer {
+    margin-bottom: 500px;
+  }
+}

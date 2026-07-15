@@ -1,0 +1,73 @@
+.wrap {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  max-width: 1920px;
+  margin-inline: auto;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  width: 100%;
+  height: 400px;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center 28%;
+  display: block;
+}
+
+.gradient {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(transparent 55%, rgba(0, 0, 0, 0.82));
+  pointer-events: none;
+}
+
+.bar {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 1120px;
+  width: 100%;
+  margin-inline: auto;
+  padding: 20px clamp(20px, 4vw, 48px);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: #ffffff;
+  pointer-events: auto;
+}
+
+.bar a {
+  color: #ffffff;
+  text-decoration: none;
+  opacity: 0.75;
+  transition: opacity 0.2s ease;
+}
+
+.bar a:hover {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+@media (min-width: 1280px) {
+  .inner {
+    height: 500px;
+  }
+}

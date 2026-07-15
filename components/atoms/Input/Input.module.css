@@ -1,0 +1,75 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-4);
+  height: 44px;
+  transition:
+    border-color var(--duration-base) var(--ease-out-expo),
+    background var(--duration-base) var(--ease-out-expo),
+    box-shadow var(--duration-base) var(--ease-out-expo);
+}
+
+.wrapper:focus-within {
+  border-color: var(--color-accent);
+  background: var(--color-surface-raised);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text-primary);
+  font-size: var(--text-base);
+  font-family: var(--font-body);
+  letter-spacing: var(--tracking-normal);
+  min-width: 0;
+}
+
+.input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* ── STATES ──────────────────────────────────────────────── */
+.error {
+  border-color: var(--color-danger);
+  background: rgba(239, 68, 68, 0.04);
+}
+.error:focus-within {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px var(--color-danger-soft);
+}
+
+.success {
+  border-color: var(--color-success);
+}
+.success:focus-within {
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 3px var(--color-success-soft);
+}
+
+.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ── ICONS ───────────────────────────────────────────────── */
+.iconLeft,
+.iconRight {
+  display: flex;
+  align-items: center;
+  color: var(--color-text-tertiary);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  transition: color var(--duration-base) var(--ease-out-expo);
+}
+
+.wrapper:focus-within .iconLeft,
+.wrapper:focus-within .iconRight {
+  color: var(--color-accent);
+}

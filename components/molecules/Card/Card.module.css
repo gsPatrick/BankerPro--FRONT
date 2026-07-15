@@ -1,0 +1,74 @@
+.card {
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  font-family: var(--font-body);
+  transition:
+    transform var(--duration-base) var(--ease-out-expo),
+    background var(--duration-base) var(--ease-out-expo),
+    border-color var(--duration-base) var(--ease-out-expo),
+    box-shadow var(--duration-base) var(--ease-out-expo);
+  border: 1px solid var(--color-card-border);
+  position: relative;
+  background: var(--color-card-bg);
+  color: var(--color-card-text);
+}
+
+/* Variants */
+.default {
+  background: var(--color-card-bg);
+  color: var(--color-card-text);
+  border-color: var(--color-card-border);
+}
+
+.elevated {
+  background: var(--color-surface-raised);
+  color: var(--color-card-text);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-strong);
+}
+
+.interactive {
+  background: var(--color-card-bg);
+  color: var(--color-card-text);
+}
+.interactive:hover {
+  background: var(--color-surface-raised);
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-md);
+}
+
+.accent {
+  background: linear-gradient(135deg, var(--color-card-bg) 0%, rgba(242, 244, 247, 0.08) 100%);
+  color: var(--color-card-text);
+  border: 1.5px solid var(--color-accent);
+}
+.accent:hover {
+  border-color: var(--color-accent-light);
+  box-shadow: var(--shadow-accent);
+}
+
+/* States */
+.clickable {
+  cursor: pointer;
+}
+.clickable:active {
+  transform: scale(0.98);
+}
+
+/* Glow Border Effect */
+.borderGlow::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: calc(var(--radius-xl) + 1.5px);
+  padding: 1.5px;
+  background: linear-gradient(135deg, var(--color-accent) 0%, rgba(255, 255, 255, 0.05) 50%, var(--color-accent-light) 100%);
+  -webkit-mask: 
+     linear-gradient(#fff 0 0) content-box, 
+     linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+

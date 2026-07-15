@@ -1,0 +1,135 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 40%, rgba(242, 244, 247, 0.08), transparent 60%),
+    rgba(8, 8, 8, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: overlayIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+  animation: stageIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+}
+
+.mark {
+  width: 56px;
+  height: 56px;
+  font-size: 56px;
+  animation: markPulse 1.4s ease-in-out infinite;
+}
+
+.brand {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+}
+
+.message {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.rail {
+  width: min(180px, 50vw);
+  height: 2px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: rgba(242, 244, 247, 0.1);
+  overflow: hidden;
+}
+
+.railFill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, #f2f4f7, transparent);
+  animation: railFill 1.15s cubic-bezier(0.45, 0, 0.2, 1) 0.15s forwards;
+}
+
+.exiting {
+  animation: overlayOut 0.32s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlayOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes stageIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes markPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 1px rgba(242, 244, 247, 0.2);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 1px rgba(242, 244, 247, 0.35), 0 0 28px rgba(242, 244, 247, 0.12);
+  }
+}
+
+@keyframes railFill {
+  from {
+    width: 0;
+    transform: translateX(-20%);
+  }
+  to {
+    width: 100%;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .stage,
+  .mark,
+  .railFill,
+  .exiting {
+    animation: none !important;
+  }
+
+  .overlay {
+    opacity: 1;
+  }
+
+  .railFill {
+    width: 100%;
+  }
+}

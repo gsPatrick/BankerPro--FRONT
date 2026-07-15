@@ -1,0 +1,205 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.planSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+  color: var(--color-card-text-muted);
+}
+
+.planSummary strong {
+  color: var(--color-card-text);
+  font-family: var(--font-display);
+}
+
+.methodTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.methodTab {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-card-text-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
+}
+
+.methodIcon {
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+.methodTabActive {
+  border-color: var(--color-accent-light);
+  color: var(--color-card-text);
+  background: rgba(242, 244, 247, 0.08);
+}
+
+.docRow {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: var(--space-3);
+  align-items: end;
+}
+
+.docTypeLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--text-xs);
+  color: var(--color-card-text-muted);
+  font-family: var(--font-body);
+}
+
+.docTypeSelect {
+  width: 100%;
+  height: 44px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-card-text);
+  padding: 0 var(--space-3);
+  font-family: var(--font-body);
+}
+
+.docField {
+  min-width: 0;
+}
+
+.cardRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.pixIntro {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-card-text-muted);
+  line-height: 1.45;
+}
+
+.submitBtn {
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.successState,
+.pixState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+  padding: var(--space-2) 0;
+}
+
+.successIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.successText {
+  margin: 0;
+  color: var(--color-card-text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.successText strong {
+  color: var(--color-card-text);
+}
+
+.pixHint {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-card-text-muted);
+  line-height: 1.45;
+}
+
+.qrWrap {
+  width: 180px;
+  height: 180px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: #fff;
+}
+
+.qrImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.qrPlaceholder {
+  width: 100%;
+  padding: var(--space-5);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-card-text-muted);
+  font-size: var(--text-xs);
+}
+
+.copyRow {
+  width: 100%;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.copyCode {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  color: var(--color-card-text-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+
+.waitingRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-card-text-muted);
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 480px) {
+  .docRow,
+  .cardRow {
+    grid-template-columns: 1fr;
+  }
+}
