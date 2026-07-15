@@ -78,8 +78,6 @@ export default function RankingPage() {
   const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState([]);
   const [me, setMe] = useState(null);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
 
   const showToast = (message, type = 'success') => {
@@ -108,9 +106,11 @@ export default function RankingPage() {
           email: profile.email || meData.email || '',
           avatarUrl: profile.avatarUrl || meData.avatarUrl || '',
           roleTitle: profile.roleTitle || '',
+          streakDays: pickField(profile, 'streakDays', 'streak_days') || 0,
+          bestScore: pickField(profile, 'bestScore', 'best_score') || 0,
         });
       } catch (err) {
-        showToast(err.message || 'Não foi possível carregar o ranking.', 'error');
+        showToast(err.message || 'Não foi possível carregar as informações do ranking.', 'error');
       } finally {
         setLoading(false);
       }
@@ -118,24 +118,32 @@ export default function RankingPage() {
     load();
   }, []);
 
-  useEffect(() => {
-    setPage(1);
-  }, [pageSize]);
-
-  const hasData = entries.length > 0;
   const meId = me?.id || null;
 
   const myEntry = useMemo(() => {
     if (!meId) return null;
     const index = entries.findIndex((item) => item.userId === meId);
-    if (index < 0) return null;
-    return { ...entries[index], rank: index + 1 };
-  }, [entries, meId]);
+    if (index >= 0) {
+      return { ...entries[index], rank: index + 1 };
+    }
+    return {
+      userId: meId,
+      userEmail: me?.email || '',
+      userName: me?.fullName || 'Bancário',
+      roleTitle: me?.roleTitle || 'Bancário',
+      totalSimulations: 0,
+      averageScore: 0,
+      xpPoints: 0,
+      rank: 1
+    };
+  }, [entries, meId, me]);
 
-  const paginated = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return entries.slice(start, start + pageSize);
-  }, [entries, page, pageSize]);
+  const filteredEntries = useMemo(() => {
+    if (!myEntry) return [];
+    return [myEntry];
+  }, [myEntry]);
+
+  const hasData = filteredEntries.length > 0;
 
   const bannerName = me?.fullName || myEntry?.userName || 'Seu nome';
   const bannerEmail = me?.email || myEntry?.userEmail || '';
@@ -146,25 +154,25 @@ export default function RankingPage() {
     {
       key: 'xp',
       label: 'Seu XP',
-      value: myEntry ? String(myEntry.xpPoints) : '—',
+      value: myEntry ? String(myEntry.xpPoints) : '0',
       tone: 'gold',
     },
     {
       key: 'avg',
       label: 'Média de nota',
-      value: myEntry ? formatScore(myEntry.averageScore) : '—',
+      value: myEntry ? formatScore(myEntry.averageScore) : '0',
       tone: 'accent',
     },
     {
       key: 'sims',
       label: 'Simulações',
-      value: myEntry ? String(myEntry.totalSimulations) : '—',
+      value: myEntry ? String(myEntry.totalSimulations) : '0',
       tone: 'success',
     },
     {
-      key: 'total',
-      label: 'Participantes',
-      value: hasData ? String(entries.length) : '—',
+      key: 'best',
+      label: 'Melhor nota',
+      value: me?.bestScore !== undefined ? formatScore(me.bestScore) : '0',
       tone: 'info',
     },
   ];
@@ -192,21 +200,15 @@ export default function RankingPage() {
           )}
 
           <div className={styles.identityText}>
-            <p className={styles.eyebrow}>Ranking</p>
+            <p className={styles.eyebrow}>Progresso</p>
             {me || myEntry ? (
               <>
                 <h2 className={styles.name}>{bannerName}</h2>
                 <p className={styles.email}>{bannerEmail || bannerRole}</p>
                 <div className={styles.badgeRow}>
                   <Badge variant="accent">{bannerRole}</Badge>
-                  {myEntry ? (
-                    <Badge variant="gold">{myEntry.rank}º lugar</Badge>
-                  ) : (
-                    <Badge variant="default">Fora do ranking</Badge>
-                  )}
-                  {hasData ? (
-                    <Badge variant="default">{entries.length} participantes</Badge>
-                  ) : null}
+                  <Badge variant="gold">{myEntry?.xpPoints || 0} XP</Badge>
+                  <Badge variant="default">Perfil Individual</Badge>
                 </div>
               </>
             ) : (
@@ -219,16 +221,12 @@ export default function RankingPage() {
         </div>
 
         <div className={styles.identityAside}>
-          <span className={styles.asideLabel}>Sua posição</span>
-          {myEntry ? (
-            <strong className={styles.asideValue}>{myEntry.rank}º</strong>
-          ) : (
-            <GhostBlock className={styles.ghostAside} />
-          )}
+          <span className={styles.asideLabel}>Ofensiva</span>
+          <strong className={styles.asideValue}>
+            {me?.streakDays || 0} 🔥
+          </strong>
           <span className={styles.asideHint}>
-            {myEntry
-              ? `entre ${entries.length} na classificação`
-              : 'Complete simulações para entrar'}
+            Treine diariamente para manter seu fogo ativo!
           </span>
         </div>
       </section>
@@ -249,39 +247,30 @@ export default function RankingPage() {
         ))}
       </section>
 
-      {!hasData ? (
-        <p className={styles.ghostNote}>
-          Ninguém entrou na classificação ainda. Finalize simulações para aparecer aqui.
-        </p>
-      ) : null}
-
       <div className={styles.sectionHead}>
-        <h2 className={styles.sectionTitle}>Classificação geral</h2>
-        <p className={styles.sectionHint}>Ordenado por XP</p>
+        <h2 className={styles.sectionTitle}>Minha Classificação</h2>
+        <p className={styles.sectionHint}>Seu desempenho individual no Closer.IA</p>
       </div>
 
       <div className={styles.board}>
         <div className={styles.boardHead}>
           <span>#</span>
-          <span>Participante</span>
+          <span>Bancário</span>
           <span className={styles.boardHeadRight}>Sims</span>
           <span className={styles.boardHeadRight}>Média</span>
           <span className={styles.boardHeadRight}>XP</span>
         </div>
 
         {hasData
-          ? paginated.map((entry, index) => {
-              const rank = index + 1 + (page - 1) * pageSize;
-              const isMe = entry.userId === meId;
+          ? filteredEntries.map((entry) => {
+              const actualRank = entry.rank || 1;
               return (
                 <div
-                  key={entry.userId || `${entry.userEmail}-${rank}`}
-                  className={[styles.row, isMe ? styles.rowMe : '']
-                    .filter(Boolean)
-                    .join(' ')}
+                  key={entry.userId || `${entry.userEmail}-${actualRank}`}
+                  className={`${styles.row} ${styles.rowMe}`}
                 >
-                  <div className={[styles.rankCell, rankClass(rank)].filter(Boolean).join(' ')}>
-                    {rank}
+                  <div className={[styles.rankCell, rankClass(actualRank)].filter(Boolean).join(' ')}>
+                    {actualRank}
                   </div>
                   <div className={styles.player}>
                     <Avatar
@@ -291,7 +280,7 @@ export default function RankingPage() {
                     <div className={styles.playerCopy}>
                       <p className={styles.playerName}>
                         {displayName(entry)}
-                        {isMe ? <span className={styles.youTag}>você</span> : null}
+                        <span className={styles.youTag}>você</span>
                       </p>
                       <p className={styles.playerMeta}>
                         {entry.roleTitle || 'Bancário'}
@@ -308,26 +297,16 @@ export default function RankingPage() {
                 </div>
               );
             })
-          : Array.from({ length: 6 }).map((_, index) => (
+          : Array.from({ length: 1 }).map((_, index) => (
               <GhostRow key={`ghost-row-${index}`} />
             ))}
       </div>
 
-      {hasData ? (
-        <Pagination
-          page={page}
-          pageSize={pageSize}
-          totalItems={entries.length}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-        />
-      ) : (
-        <div className={styles.actions}>
-          <Link href="/cenarios">
-            <Button variant="primary">Começar a treinar</Button>
-          </Link>
-        </div>
-      )}
+      <div className={styles.actions} style={{ marginTop: '24px', display: 'flex', justifyContent: 'center' }}>
+        <Link href="/cenarios">
+          <Button variant="primary">Fazer Nova Simulação</Button>
+        </Link>
+      </div>
 
       <Toast
         visible={toast.visible}

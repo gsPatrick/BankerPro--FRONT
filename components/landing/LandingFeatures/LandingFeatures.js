@@ -48,9 +48,9 @@ const FEATURES = [
   },
   {
     id: 'ranking',
-    kicker: 'Time',
-    title: 'Ranking & Histórico',
-    body: 'Compare evolução, revise simulações e fortaleça a cultura de fechamento.',
+    kicker: 'Evolução',
+    title: 'Histórico & Pontuações',
+    body: 'Monitore seus pontos de XP, analise erros em simulações passadas e evolua no seu próprio ritmo.',
   },
 ];
 

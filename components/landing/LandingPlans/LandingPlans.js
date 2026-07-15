@@ -82,7 +82,7 @@ export default function LandingPlans({ onSelectPlan }) {
     <section className={styles.section} id="planos">
       <div className={styles.statementWrap}>
         <p className={styles.statement}>
-          Fechar deixa de ser sorte quando o time treina com Closer.IA.
+          Fechar deixa de ser sorte quando você treina com Closer.IA.
         </p>
       </div>
 

@@ -14,7 +14,7 @@ export default function LandingProduct({ onRegister }) {
         <h2 className={styles.title}>
           O sistema de performance
           <br />
-          comercial para times e IA.
+          comercial para o bancário e IA.
         </h2>
         <div className={styles.descriptionRow}>
           <p className={styles.description}>

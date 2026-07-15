@@ -10,19 +10,15 @@ const FAQ = [
   },
   {
     q: 'Preciso de WhatsApp para usar o Copiloto?',
-    a: 'O Copiloto funciona na plataforma. A integração com WhatsApp é opcional e depende do plano e da configuração da equipe.',
+    a: 'O Copiloto funciona na plataforma. A integração com WhatsApp é opcional e depende do plano e da configuração.',
   },
   {
     q: 'Quanto tempo leva para ver resultado?',
-    a: 'Times que treinam com consistência costumam ganhar segurança na abordagem já nas primeiras semanas — especialmente com a Lista de Oportunidades.',
-  },
-  {
-    q: 'Posso começar no plano gratuito?',
-    a: 'Sim. Você cria a conta, explora o essencial e evolui para um plano pago quando quiser mais simulações e recursos avançados.',
+    a: 'Bancários que treinam com consistência costumam ganhar segurança na abordagem já nas primeiras semanas — especialmente com a Lista de Oportunidades.',
   },
   {
     q: 'Serve para quem atende e para quem gerencia?',
-    a: 'Sim. O bancário treina e fecha; a gestão acompanha métricas, metas e a evolução do time.',
+    a: 'Sim. O bancário treina e fecha; ele mesmo acompanha suas métricas, metas e sua própria evolução de forma 100% individual.',
   },
   {
     q: 'Meus dados ficam seguros?',
