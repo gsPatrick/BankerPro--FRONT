@@ -8,12 +8,11 @@ import Avatar from '@/components/atoms/Avatar/Avatar';
 import Badge from '@/components/atoms/Badge/Badge';
 import Toast from '@/components/molecules/Toast/Toast';
 import Spinner from '@/components/atoms/Spinner/Spinner';
-import { api } from '@/lib/api';
+import { api, uploadFile } from '@/lib/api';
 import {
   CERTIFICATION_OPTIONS,
   EXPERIENCE_LEVELS,
   WORK_SITUATIONS,
-  fileToAvatarDataUrl,
   formatPhone,
   markOnboardingCompletedLocal,
 } from '@/lib/onboarding';
@@ -119,11 +118,15 @@ export default function PerfilPage() {
   const handleAvatarChange = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    setLoading(true);
     try {
-      const dataUrl = await fileToAvatarDataUrl(file);
-      setAvatarUrl(dataUrl);
+      const url = await uploadFile(file);
+      setAvatarUrl(url);
+      showToast('Foto carregada com sucesso!', 'success');
     } catch (err) {
-      showToast(err.message || 'Não foi possível carregar a foto.', 'error');
+      showToast(err.message || 'Não foi possível fazer upload da foto.', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 

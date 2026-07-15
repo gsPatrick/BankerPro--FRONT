@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { getMediaUrl } from '@/lib/api';
 import styles from './UserMenu.module.css';
 
 /**
@@ -55,7 +56,7 @@ export default function UserMenu({ user, onLogout, onStartTour }) {
       >
         {user?.avatarUrl ? (
           <span className={styles.avatar}>
-            <img src={user.avatarUrl} alt="" className={styles.avatarImg} />
+            <img src={getMediaUrl(user.avatarUrl)} alt="" className={styles.avatarImg} />
           </span>
         ) : (
           <span className={styles.avatar} aria-hidden="true">

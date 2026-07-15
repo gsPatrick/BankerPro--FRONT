@@ -1,3 +1,4 @@
+import { getMediaUrl } from '@/lib/api';
 import styles from './Avatar.module.css';
 
 /**
@@ -13,7 +14,7 @@ export default function Avatar({ size = 'md', src, initials, online = false, cla
   return (
     <div className={classes}>
       {src ? (
-        <img src={src} alt={initials || 'Avatar'} className={styles.img} />
+        <img src={getMediaUrl(src)} alt={initials || 'Avatar'} className={styles.img} />
       ) : (
         <span className={styles.initials}>{initials}</span>
       )}

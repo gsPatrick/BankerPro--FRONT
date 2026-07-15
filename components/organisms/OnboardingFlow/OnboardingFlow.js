@@ -6,12 +6,11 @@ import Button from '@/components/atoms/Button/Button';
 import Avatar from '@/components/atoms/Avatar/Avatar';
 import Toast from '@/components/molecules/Toast/Toast';
 import BrandMark from '@/components/BrandMark/BrandMark';
-import { api } from '@/lib/api';
+import { api, uploadFile } from '@/lib/api';
 import {
   CERTIFICATION_OPTIONS,
   EXPERIENCE_LEVELS,
   WORK_SITUATIONS,
-  fileToAvatarDataUrl,
   formatPhone,
   markOnboardingCompletedLocal,
 } from '@/lib/onboarding';
@@ -82,11 +81,15 @@ export default function OnboardingFlow({
   const handleAvatarChange = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    setLoading(true);
     try {
-      const dataUrl = await fileToAvatarDataUrl(file);
-      setAvatarUrl(dataUrl);
+      const url = await uploadFile(file);
+      setAvatarUrl(url);
+      showToast('Foto carregada com sucesso!', 'success');
     } catch (err) {
-      showToast(err.message || 'Não foi possível carregar a foto.');
+      showToast(err.message || 'Não foi possível fazer upload da foto.');
+    } finally {
+      setLoading(false);
     }
   };
 
