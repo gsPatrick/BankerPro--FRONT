@@ -24,7 +24,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  animation: headerIntro 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+  animation: headerIntro 0.9s cubic-bezier(0.16, 1, 0.3, 1) 2.3s both;
 }
 
 @keyframes headerIntro {
@@ -105,7 +105,7 @@
   backdrop-filter: blur(16px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
   /* Intro: pill opens from compact centre */
-  animation: pillOpen 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+  animation: pillOpen 1.1s cubic-bezier(0.16, 1, 0.3, 1) 2.45s both;
   transform-origin: right center;
 }
 
