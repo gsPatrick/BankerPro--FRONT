@@ -32,25 +32,33 @@ export default function TermsPage() {
 
   const renderTermsContent = (text) => {
     if (!text) return null;
-    return text.split('\n\n').map((block, idx) => {
-      const trimmed = block.trim();
-      if (!trimmed) return null;
+    const lines = text.split(/\r?\n/);
+    return lines
+      .map((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed) return null;
 
-      // Detect sub-headings like "1. Proteção de dados"
-      if (/^\d+\./.test(trimmed) || trimmed.startsWith('TERMOS DE USO')) {
+        // Detect sub-headings like "1. Proteção de dados" or all uppercase titles
+        const isHeading =
+          /^\d+\./.test(trimmed) ||
+          /^[A-ZÁÉÍÓÚÂÊÔÀÜÇ\s\(\)-]{6,}$/.test(trimmed) ||
+          trimmed.startsWith('TERMOS');
+
+        if (isHeading) {
+          return (
+            <h3 key={idx} className={styles.sectionHeader}>
+              {trimmed}
+            </h3>
+          );
+        }
+
         return (
-          <h3 key={idx} className={styles.sectionHeader}>
+          <p key={idx} className={styles.paragraph}>
             {trimmed}
-          </h3>
+          </p>
         );
-      }
-
-      return (
-        <p key={idx} className={styles.paragraph}>
-          {trimmed}
-        </p>
-      );
-    });
+      })
+      .filter(Boolean);
   };
 
   return (

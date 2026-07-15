@@ -37,12 +37,19 @@ function loadMercadoPagoSdk() {
   });
 }
 
-function formatPlanPrice(price) {
+function formatPlanPrice(price, key = '') {
   const value = Number(price);
   if (!Number.isFinite(value) || value <= 0) return 'Grátis';
-  return Number.isInteger(value)
+  const isYearly =
+    String(key).toLowerCase().includes('yearly') ||
+    String(key).toLowerCase().includes('year') ||
+    String(key).toLowerCase().includes('annual') ||
+    String(key).toLowerCase().includes('anual');
+  const period = isYearly ? '/ano' : '/mês';
+  const formatted = Number.isInteger(value)
     ? `R$ ${value}`
     : `R$ ${value.toFixed(2).replace('.', ',')}`;
+  return `${formatted}${period}`;
 }
 
 /**
@@ -322,7 +329,7 @@ export default function PaymentCheckout({
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.planSummary}>
             <span>{plan.name}</span>
-            <strong>{formatPlanPrice(plan.price)}/mês</strong>
+            <strong>{formatPlanPrice(plan.price, plan.key)}</strong>
           </div>
 
           <div className={styles.methodTabs}>
@@ -425,7 +432,7 @@ export default function PaymentCheckout({
             loading={processing}
             className={styles.submitBtn}
           >
-            {paymentMethod === 'pix' ? 'Gerar PIX' : `Pagar ${formatPlanPrice(plan.price)}`}
+            {paymentMethod === 'pix' ? 'Gerar PIX' : `Pagar ${formatPlanPrice(plan.price, plan.key)}`}
           </Button>
         </form>
       )}
