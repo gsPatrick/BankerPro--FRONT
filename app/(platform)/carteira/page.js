@@ -23,7 +23,6 @@ const STATUSES = [
 const EMPTY_FORM = {
   name: '',
   phone: '',
-  whatsapp: '',
   objective: '',
   approximateIncome: '',
   offeredProduct: '',
@@ -55,8 +54,9 @@ function normalizeClient(raw = {}) {
   return {
     id: pickField(raw, 'id'),
     name: pickField(raw, 'name') || '',
-    phone: pickField(raw, 'phone') || '',
-    whatsapp: pickField(raw, 'whatsapp') || '',
+    // Telefone e WhatsApp viraram um contato só: clientes antigos podem ter
+    // preenchido apenas um dos dois, então o que existir vira o contato.
+    phone: pickField(raw, 'phone') || pickField(raw, 'whatsapp') || '',
     objective: pickField(raw, 'objective') || '',
     approximateIncome:
       pickField(raw, 'approximateIncome', 'approximate_income') || '',
@@ -156,7 +156,6 @@ export default function CarteiraPage() {
         client.objective,
         client.offeredProduct,
         client.phone,
-        client.whatsapp,
       ]
         .filter(Boolean)
         .join(' ')
@@ -191,8 +190,10 @@ export default function CarteiraPage() {
     try {
       const payload = {
         name: form.name.trim(),
+        // O contato é único, mas as duas colunas seguem espelhadas para não quebrar
+        // quem já lê o whatsapp do cliente.
         phone: form.phone || null,
-        whatsapp: form.whatsapp || null,
+        whatsapp: form.phone || null,
         objective: form.objective || null,
         approximateIncome: form.approximateIncome || null,
         offeredProduct: form.offeredProduct || null,
@@ -369,9 +370,7 @@ export default function CarteiraPage() {
                     {client.nextReturn ? (
                       <span>Retorno · {formatDate(client.nextReturn)}</span>
                     ) : (
-                      <span>
-                        {client.whatsapp || client.phone || 'Sem contato informado'}
-                      </span>
+                      <span>{client.phone || 'Sem contato informado'}</span>
                     )}
                   </div>
                   <div className={styles.billActions}>
@@ -446,19 +445,11 @@ export default function CarteiraPage() {
               placeholder="Nome do cliente"
             />
           </div>
-          <div className={styles.formField}>
-            <label>Telefone</label>
+          <div className={`${styles.formField} ${styles.formFull}`}>
+            <label>Telefone / WhatsApp</label>
             <input
               value={form.phone}
               onChange={(e) => setForm((current) => ({ ...current, phone: e.target.value }))}
-              placeholder="(00) 0000-0000"
-            />
-          </div>
-          <div className={styles.formField}>
-            <label>WhatsApp</label>
-            <input
-              value={form.whatsapp}
-              onChange={(e) => setForm((current) => ({ ...current, whatsapp: e.target.value }))}
               placeholder="(00) 00000-0000"
             />
           </div>
