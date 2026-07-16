@@ -431,7 +431,9 @@ export default function PlanoPage() {
         plan={checkoutPlan}
         onClose={() => setCheckoutPlan(null)}
         onSuccess={async () => {
-          localStorage.setItem('bankerpro_plan_selected', checkoutPlan?.key || 'pro');
+          if (checkoutPlan?.key) {
+            localStorage.setItem('bankerpro_plan_selected', checkoutPlan.key);
+          }
           setCheckoutPlan(null);
           showToast('Pagamento confirmado. Plano atualizado!');
           setLoading(true);

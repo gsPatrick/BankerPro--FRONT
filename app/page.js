@@ -183,7 +183,9 @@ export default function OnboardingContainer() {
           ? response.data.map(normalizePlan)
           : [];
         setPlans(list);
-        const recommendedIdx = list.findIndex((p) => p.key === 'pro');
+        const recommendedIdx = list.findIndex((p) =>
+          String(p.key || '').toLowerCase().includes('premium')
+        );
         const startPage =
           recommendedIdx >= 0 ? Math.floor(recommendedIdx / PLANS_PER_PAGE) : 0;
         setActivePageIndex(startPage);

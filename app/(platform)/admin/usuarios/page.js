@@ -96,8 +96,9 @@ function normalizeUser(raw = {}) {
 export default function AdminUsuariosPage() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
+  const [plans, setPlans] = useState([]);
   const [modal, setModal] = useState(null);
-  const [planKey, setPlanKey] = useState('pro');
+  const [planKey, setPlanKey] = useState('');
   const [days, setDays] = useState(30);
   const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
 
@@ -119,8 +120,24 @@ export default function AdminUsuariosPage() {
     }
   };
 
+  const loadPlans = async () => {
+    try {
+      const res = await api.get('/admin/plans');
+      const list = res?.data || res || [];
+      setPlans(
+        (Array.isArray(list) ? list : []).map((raw) => ({
+          key: pickField(raw, 'key') || '',
+          name: pickField(raw, 'name') || '',
+        }))
+      );
+    } catch (err) {
+      showToast(err.message || 'Erro ao carregar planos.', 'error');
+    }
+  };
+
   useEffect(() => {
     load();
+    loadPlans();
   }, []);
 
   const toggleStatus = async (user) => {
@@ -158,6 +175,10 @@ export default function AdminUsuariosPage() {
 
   const grantPlan = async () => {
     if (!modal?.user) return;
+    if (!planKey) {
+      showToast('Selecione um plano.', 'error');
+      return;
+    }
     try {
       await api.post(`/admin/users/${modal.user.id}/subscription`, {
         planKey,
@@ -334,7 +355,8 @@ export default function AdminUsuariosPage() {
                 type="button"
                 variant="secondary"
                 onClick={() => {
-                  setPlanKey(modal.user.planKey || 'pro');
+                  const current = plans.find((plan) => plan.key === modal.user.planKey);
+                  setPlanKey(current?.key || plans[0]?.key || '');
                   setDays(30);
                   setModal({ type: 'plan', user: modal.user });
                 }}
@@ -410,9 +432,15 @@ export default function AdminUsuariosPage() {
               value={planKey}
               onChange={(e) => setPlanKey(e.target.value)}
             >
-              <option value="free">Free</option>
-              <option value="pro">Pro</option>
-              <option value="team">Team</option>
+              {plans.length === 0 ? (
+                <option value="">Nenhum plano cadastrado</option>
+              ) : (
+                plans.map((plan) => (
+                  <option key={plan.key} value={plan.key}>
+                    {plan.name || plan.key}
+                  </option>
+                ))
+              )}
             </select>
           </label>
           <label className={styles.field}>
