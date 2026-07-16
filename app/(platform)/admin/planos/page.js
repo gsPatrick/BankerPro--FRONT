@@ -9,29 +9,22 @@ import { api } from '@/lib/api';
 import { pickField } from '@/lib/normalize';
 import styles from '../admin.module.css';
 
+// Espelha o catálogo de src/config/constants.js na API — a key é o que libera a
+// tela de verdade. Painel, Perfil, Configurações e Planos não entram: são sempre
+// liberados, senão o usuário não conseguiria nem contratar um upgrade.
 const FEATURE_OPTIONS = [
-  'Copiloto limitado',
-  'Copiloto completo',
-  'Lista de Oportunidades',
-  'Gerador de abordagens',
-  'Copiloto no WhatsApp',
-  'Agenda e metas',
-  'Anotações rápidas',
-  'Tudo do Pro',
-  'Múltiplos usuários',
-  'Relatórios consolidados',
+  { key: 'cenarios', label: 'Cenários' },
+  { key: 'historico', label: 'Histórico' },
+  { key: 'ranking', label: 'Ranking' },
+  { key: 'carteira', label: 'Carteira' },
+  { key: 'agenda', label: 'Agenda' },
+  { key: 'metas', label: 'Metas' },
+  { key: 'anotacoes', label: 'Anotações' },
+  { key: 'copiloto', label: 'Copiloto IA' },
+  { key: 'oportunidades', label: 'Lista de Oportunidades' },
+  { key: 'gerador', label: 'Gerador de abordagens' },
+  { key: 'whatsapp_copilot', label: 'Copiloto no WhatsApp' },
 ];
-
-const SIM_LIMIT_FEATURES = [
-  '10 Simulações/mês',
-  'Simulações ilimitadas',
-];
-
-function cleanFeatures(list = []) {
-  return (Array.isArray(list) ? list : []).filter(
-    (item) => !SIM_LIMIT_FEATURES.includes(item)
-  );
-}
 
 // A cobrança do plano vive no sufixo da key: é ela que faz a landing e o checkout
 // separarem os planos entre Mensal e Anual.
@@ -71,7 +64,7 @@ const EMPTY = {
   name: '',
   price: 0,
   limitSimulations: 10,
-  features: [],
+  permissions: [],
 };
 
 function CheckIcon() {
@@ -97,7 +90,7 @@ function normalizePlan(raw = {}) {
     limitSimulations: Number(
       pickField(raw, 'limitSimulations', 'limit_simulations') ?? 10
     ),
-    features: Array.isArray(raw.features) ? raw.features : [],
+    permissions: Array.isArray(raw.permissions) ? raw.permissions : [],
   };
 }
 
@@ -133,10 +126,6 @@ export default function AdminPlanosPage() {
   }, []);
 
   const unlimited = Number(form.limitSimulations) < 0;
-  const featureChoices = [
-    ...FEATURE_OPTIONS,
-    ...(form.features || []).filter((item) => !FEATURE_OPTIONS.includes(item)),
-  ];
 
   const openCreate = () => {
     setEditingId(null);
@@ -151,7 +140,7 @@ export default function AdminPlanosPage() {
       name: plan.name,
       price: plan.price,
       limitSimulations: plan.limitSimulations,
-      features: cleanFeatures(plan.features),
+      permissions: plan.permissions,
     });
     setFormOpen(true);
   };
@@ -164,15 +153,15 @@ export default function AdminPlanosPage() {
     }));
   };
 
-  const toggleFeature = (feature) => {
+  const toggleFeature = (featureKey) => {
     setForm((current) => {
-      const selected = Array.isArray(current.features) ? current.features : [];
-      const exists = selected.includes(feature);
+      const selected = Array.isArray(current.permissions) ? current.permissions : [];
+      const exists = selected.includes(featureKey);
       return {
         ...current,
-        features: exists
-          ? selected.filter((item) => item !== feature)
-          : [...selected, feature],
+        permissions: exists
+          ? selected.filter((item) => item !== featureKey)
+          : [...selected, featureKey],
       };
     });
   };
@@ -183,7 +172,7 @@ export default function AdminPlanosPage() {
       name: form.name.trim(),
       price: Number(form.price) || 0,
       limitSimulations: unlimited ? -1 : Math.max(0, Number(form.limitSimulations) || 0),
-      features: cleanFeatures(form.features),
+      permissions: form.permissions || [],
     };
     if (!payload.key || !payload.name) {
       showToast('Informe key e nome.', 'error');
@@ -401,28 +390,33 @@ export default function AdminPlanosPage() {
             </p>
           </div>
           <div className={styles.field}>
-            <span className={styles.fieldLabel}>Features</span>
+            <span className={styles.fieldLabel}>Funcionalidades liberadas</span>
             <div className={styles.checkGrid}>
-              {featureChoices.map((feature) => {
-                const active = (form.features || []).includes(feature);
+              {FEATURE_OPTIONS.map((feature) => {
+                const active = (form.permissions || []).includes(feature.key);
                 return (
                   <button
-                    key={feature}
+                    key={feature.key}
                     type="button"
                     className={`${styles.checkItem} ${
                       active ? styles.checkItemActive : ''
                     }`}
-                    onClick={() => toggleFeature(feature)}
+                    onClick={() => toggleFeature(feature.key)}
                     aria-pressed={active}
                   >
                     <span className={styles.checkBox}>
                       {active ? <CheckIcon /> : null}
                     </span>
-                    {feature}
+                    {feature.label}
                   </button>
                 );
               })}
             </div>
+            <span className={styles.hint}>
+              O que estiver desmarcado fica bloqueado para o assinante e não aparece
+              no card do plano. Painel, Perfil, Configurações e Planos são sempre
+              liberados. O limite de simulações é o campo acima.
+            </span>
           </div>
         </div>
       </Modal>

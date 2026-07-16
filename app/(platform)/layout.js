@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/organisms/AppShell/AppShell';
+import PlanUpgradeGate from '@/components/organisms/PlanUpgradeGate/PlanUpgradeGate';
 import Spinner from '@/components/atoms/Spinner/Spinner';
 import { api } from '@/lib/api';
 import { isOnboardingCompleted } from '@/lib/onboarding';
@@ -37,6 +38,7 @@ export default function PlatformLayout({ children }) {
           whatsapp: data.whatsapp,
           onboardingCompleted: Boolean(data.onboardingCompleted || data.onboarding_completed || data.profile?.onboardingCompleted || data.profile?.onboarding_completed),
           avatarUrl: data.avatarUrl || data.avatar_url || data.profile?.avatarUrl || data.profile?.avatar_url || null,
+          permissions: Array.isArray(data.permissions) ? data.permissions : [],
         };
         localStorage.setItem('bankerpro_user', JSON.stringify(nextUser));
         incomplete = !isOnboardingCompleted(data);
@@ -78,6 +80,7 @@ export default function PlatformLayout({ children }) {
       onOnboardingComplete={() => setNeedsOnboarding(false)}
     >
       {children}
+      <PlanUpgradeGate />
     </AppShell>
   );
 }

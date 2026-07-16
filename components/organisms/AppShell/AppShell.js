@@ -74,14 +74,20 @@ export default function AppShell({
   }, [initialUser]);
 
   const userRole = user?.role || 'user';
+  // null enquanto o /auth/me não respondeu: o menu mostra tudo nesse intervalo
+  // para não piscar, e a API continua sendo quem bloqueia de fato.
+  const permissions = Array.isArray(user?.permissions) ? user.permissions : null;
   const sidebarItems = useMemo(
-    () => getVisibleNavItems(userRole).filter((item) => item.id !== 'perfil'),
-    [userRole]
+    () => getVisibleNavItems(userRole, permissions).filter((item) => item.id !== 'perfil'),
+    [userRole, permissions]
   );
-  const mobilePrimaryItems = useMemo(() => getMobilePrimaryItems(userRole), [userRole]);
+  const mobilePrimaryItems = useMemo(
+    () => getMobilePrimaryItems(userRole, permissions),
+    [userRole, permissions]
+  );
   const mobileSecondaryItems = useMemo(
-    () => getMobileSecondaryItems(userRole).filter((item) => item.id !== 'perfil'),
-    [userRole]
+    () => getMobileSecondaryItems(userRole, permissions).filter((item) => item.id !== 'perfil'),
+    [userRole, permissions]
   );
 
   const activeId = useMemo(() => getActiveNavId(pathname), [pathname]);
