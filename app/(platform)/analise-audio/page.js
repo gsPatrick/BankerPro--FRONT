@@ -13,7 +13,9 @@ function normalizeAnalysis(raw = {}) {
   const score = pickField(raw, 'score');
   return {
     id: pickField(raw, 'id'),
-    title: pickField(raw, 'title') || 'Negociação sem título',
+    status: pickField(raw, 'status') || 'completed',
+    errorMessage: pickField(raw, 'errorMessage', 'error_message') || '',
+    title: pickField(raw, 'title') || 'Negociação',
     analysis: pickField(raw, 'analysis') || '',
     transcription: pickField(raw, 'transcription') || '',
     score: score === null || score === undefined ? null : Number(score),
@@ -70,8 +72,9 @@ export default function AnaliseAudioPage() {
     setTimeout(() => setToast((c) => ({ ...c, visible: false })), 5000);
   };
 
-  const load = async () => {
-    setLoading(true);
+  const load = async (silent = false) => {
+    // `silent` = recarga do polling em segundo plano, sem piscar o spinner geral.
+    if (!silent) setLoading(true);
     try {
       const res = await api.get('/audio-analysis');
       const list = res?.data || res || [];
@@ -82,7 +85,7 @@ export default function AnaliseAudioPage() {
         showToast(err.message || 'Erro ao carregar o histórico.', 'error');
       }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -93,11 +96,28 @@ export default function AnaliseAudioPage() {
     };
   }, []);
 
+  // Enquanto houver alguma análise em processamento (fila), recarrega o histórico
+  // de tempos em tempos até ela ficar pronta — é o polling que substitui a espera
+  // síncrona antiga.
+  const hasProcessing = items.some((item) => item.status === 'processing');
+  useEffect(() => {
+    if (!hasProcessing) return undefined;
+    const poll = setInterval(() => load(true), 4000);
+    return () => clearInterval(poll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasProcessing]);
+
   const enviar = async (file, durationSeconds) => {
     setAnalyzing(true);
     try {
-      await uploadAudioAnalysis(file, { durationSeconds });
-      showToast('Análise concluída! Confira o feedback abaixo.');
+      const res = await uploadAudioAnalysis(file, { durationSeconds });
+      // Com fila, volta 'processing' (o polling acompanha); sem fila, já vem
+      // 'completed'.
+      if (res?.status === 'processing') {
+        showToast('Áudio recebido! A análise aparece no histórico em instantes.');
+      } else {
+        showToast('Análise concluída! Confira o feedback abaixo.');
+      }
       await load();
     } catch (err) {
       if (err.code !== 'PLAN_FEATURE_DENIED') {
@@ -216,8 +236,8 @@ export default function AnaliseAudioPage() {
         <div className={styles.analyzing}>
           <Spinner size="md" />
           <div>
-            <strong>Ouvindo a negociação…</strong>
-            <p>Estamos transcrevendo o áudio e analisando a conversa. Leva alguns instantes.</p>
+            <strong>Enviando o áudio…</strong>
+            <p>Assim que enviar, a análise entra na fila e aparece no histórico abaixo.</p>
           </div>
         </div>
       ) : null}
@@ -232,33 +252,47 @@ export default function AnaliseAudioPage() {
         </p>
       ) : (
         <div className={styles.list}>
-          {items.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={styles.card}
-              onClick={() => {
-                setDetail(item);
-                setShowTranscription(false);
-              }}
-            >
-              <div className={styles.cardTop}>
-                {item.score !== null ? (
-                  <span className={`${styles.score} ${scoreTone(item.score)}`}>{item.score}</span>
-                ) : (
-                  <span className={styles.score}>—</span>
-                )}
-                <div className={styles.cardMeta}>
-                  <strong>{item.title}</strong>
-                  <span>
-                    {formatDate(item.createdAt)}
-                    {item.durationSeconds ? ` · ${formatDuration(item.durationSeconds)}` : ''}
-                    {item.source === 'whatsapp' ? ' · WhatsApp' : ''}
-                  </span>
+          {items.map((item) => {
+            const processing = item.status === 'processing';
+            const failed = item.status === 'failed';
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={styles.card}
+                // Um item ainda processando não tem o que abrir; o clique só vale
+                // quando concluiu ou falhou (para ver o motivo).
+                disabled={processing}
+                onClick={() => {
+                  if (processing) return;
+                  setDetail(item);
+                  setShowTranscription(false);
+                }}
+              >
+                <div className={styles.cardTop}>
+                  {processing ? (
+                    <span className={styles.score}><Spinner size="sm" /></span>
+                  ) : failed ? (
+                    <span className={`${styles.score} ${styles.scoreLow}`}>!</span>
+                  ) : item.score !== null ? (
+                    <span className={`${styles.score} ${scoreTone(item.score)}`}>{item.score}</span>
+                  ) : (
+                    <span className={styles.score}>—</span>
+                  )}
+                  <div className={styles.cardMeta}>
+                    <strong>
+                      {processing ? 'Analisando a negociação…' : failed ? 'Não foi possível analisar' : item.title}
+                    </strong>
+                    <span>
+                      {formatDate(item.createdAt)}
+                      {item.durationSeconds ? ` · ${formatDuration(item.durationSeconds)}` : ''}
+                      {item.source === 'whatsapp' ? ' · WhatsApp' : ''}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -279,18 +313,28 @@ export default function AnaliseAudioPage() {
       >
         {detail ? (
           <div className={styles.detail}>
-            <pre className={styles.analysisText}>{detail.analysis}</pre>
+            {detail.status === 'failed' ? (
+              <p className={styles.analysisText}>
+                {detail.errorMessage || 'Não foi possível analisar este áudio. Tente enviar novamente.'}
+              </p>
+            ) : (
+              <pre className={styles.analysisText}>{detail.analysis}</pre>
+            )}
 
-            <button
-              type="button"
-              className={styles.toggle}
-              onClick={() => setShowTranscription((v) => !v)}
-            >
-              {showTranscription ? 'Ocultar transcrição' : 'Ver transcrição do áudio'}
-            </button>
+            {detail.status !== 'failed' ? (
+              <>
+                <button
+                  type="button"
+                  className={styles.toggle}
+                  onClick={() => setShowTranscription((v) => !v)}
+                >
+                  {showTranscription ? 'Ocultar transcrição' : 'Ver transcrição do áudio'}
+                </button>
 
-            {showTranscription ? (
-              <pre className={styles.transcriptionText}>{detail.transcription}</pre>
+                {showTranscription ? (
+                  <pre className={styles.transcriptionText}>{detail.transcription}</pre>
+                ) : null}
+              </>
             ) : null}
           </div>
         ) : null}
