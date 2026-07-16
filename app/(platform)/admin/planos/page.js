@@ -33,8 +33,41 @@ function cleanFeatures(list = []) {
   );
 }
 
+// A cobrança do plano vive no sufixo da key: é ela que faz a landing e o checkout
+// separarem os planos entre Mensal e Anual.
+const BILLING_PERIODS = [
+  { value: 'monthly', label: 'Mensal', suffix: '_monthly' },
+  { value: 'yearly', label: 'Anual', suffix: '_yearly' },
+];
+
+function splitPlanKey(key = '') {
+  const value = String(key).trim();
+  for (const period of BILLING_PERIODS) {
+    if (value.endsWith(period.suffix)) {
+      return {
+        keyBase: value.slice(0, -period.suffix.length),
+        billingPeriod: period.value,
+      };
+    }
+  }
+  return { keyBase: value, billingPeriod: 'monthly' };
+}
+
+function buildPlanKey(keyBase, billingPeriod) {
+  const base = String(keyBase)
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/_(monthly|yearly)$/, '');
+  if (!base) return '';
+  const period =
+    BILLING_PERIODS.find((item) => item.value === billingPeriod) ?? BILLING_PERIODS[0];
+  return `${base}${period.suffix}`;
+}
+
 const EMPTY = {
-  key: '',
+  keyBase: '',
+  billingPeriod: 'monthly',
   name: '',
   price: 0,
   limitSimulations: 10,
@@ -114,7 +147,7 @@ export default function AdminPlanosPage() {
   const openEdit = (plan) => {
     setEditingId(plan.id);
     setForm({
-      key: plan.key,
+      ...splitPlanKey(plan.key),
       name: plan.name,
       price: plan.price,
       limitSimulations: plan.limitSimulations,
@@ -146,7 +179,7 @@ export default function AdminPlanosPage() {
 
   const save = async () => {
     const payload = {
-      key: form.key.trim(),
+      key: buildPlanKey(form.keyBase, form.billingPeriod),
       name: form.name.trim(),
       price: Number(form.price) || 0,
       limitSimulations: unlimited ? -1 : Math.max(0, Number(form.limitSimulations) || 0),
@@ -290,9 +323,10 @@ export default function AdminPlanosPage() {
               <span className={styles.fieldLabel}>Key</span>
               <input
                 className={styles.input}
-                value={form.key}
+                value={form.keyBase}
                 disabled={Boolean(editingId)}
-                onChange={(e) => setForm((f) => ({ ...f, key: e.target.value }))}
+                placeholder="standard"
+                onChange={(e) => setForm((f) => ({ ...f, keyBase: e.target.value }))}
               />
             </label>
             <label className={styles.field}>
@@ -304,6 +338,28 @@ export default function AdminPlanosPage() {
               />
             </label>
           </div>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>Cobrança</span>
+            <select
+              className={styles.select}
+              value={form.billingPeriod}
+              disabled={Boolean(editingId)}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, billingPeriod: e.target.value }))
+              }
+            >
+              {BILLING_PERIODS.map((period) => (
+                <option key={period.value} value={period.value}>
+                  {period.label}
+                </option>
+              ))}
+            </select>
+            <span className={styles.hint}>
+              {editingId
+                ? 'A key e a cobrança não podem ser alteradas depois de criado, porque as assinaturas existentes apontam para elas. Para oferecer o outro período, crie um plano novo com a mesma key.'
+                : `Key final: ${buildPlanKey(form.keyBase, form.billingPeriod) || '—'}. Use a mesma key nos dois períodos (ex: "standard" em Mensal e em Anual) para que os dois apareçam no seletor da landing.`}
+            </span>
+          </label>
           <label className={styles.field}>
             <span className={styles.fieldLabel}>Preço</span>
             <input

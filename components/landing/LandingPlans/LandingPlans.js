@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Spinner from '@/components/atoms/Spinner/Spinner';
 import { api } from '@/lib/api';
 import styles from './LandingPlans.module.css';
