@@ -1,0 +1,207 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.banner {
+  border-radius: 20px;
+  border: 1px solid rgba(242, 244, 247, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eyebrow {
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  max-width: 62ch;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.analyzing {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(242, 244, 247, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 18px 20px;
+}
+
+.analyzing strong {
+  color: #ffffff;
+  font-size: var(--text-sm);
+}
+
+.analyzing p {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.loading {
+  display: grid;
+  place-items: center;
+  padding: 48px 0;
+}
+
+.empty {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+  padding: 40px 0;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  width: 100%;
+  text-align: left;
+  border-radius: 14px;
+  border: 1px solid rgba(242, 244, 247, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.card:hover {
+  border-color: rgba(242, 244, 247, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.score {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(242, 244, 247, 0.12);
+}
+
+/* A cor da nota segue a régua do próprio prompt: 0-3 fraca, 4-6 mediana, 7+ boa. */
+.scoreLow {
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.4);
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.scoreMid {
+  color: #ffc857;
+  border-color: rgba(255, 200, 87, 0.4);
+  background: rgba(255, 200, 87, 0.1);
+}
+
+.scoreHigh {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.4);
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.cardMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.cardMeta strong {
+  color: #ffffff;
+  font-size: var(--text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardMeta span {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* O feedback vem em texto corrido com quebras de linha; pre-wrap preserva a
+   estrutura das 9 seções sem precisar de parser de markdown. */
+.analysisText {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  line-height: 1.65;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.toggle {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+}
+
+.transcriptionText {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(242, 244, 247, 0.1);
+  border-radius: 12px;
+  padding: 14px;
+  margin: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}

@@ -16,6 +16,7 @@ const TABS = [
 
 const INTEGRATION_KEYS = [
   { key: 'ANTHROPIC_API_KEY', label: 'Anthropic API Key' },
+  { key: 'OPENAI_API_KEY', label: 'OpenAI API Key (transcrição de áudio)' },
   { key: 'MP_ACCESS_TOKEN', label: 'Mercado Pago Access Token' },
   { key: 'MP_PUBLIC_KEY', label: 'Mercado Pago Public Key' },
   { key: 'EVOLUTION_API_URL', label: 'Evolution API URL' },
