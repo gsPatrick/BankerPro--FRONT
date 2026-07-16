@@ -9,22 +9,9 @@ import { api } from '@/lib/api';
 import { pickField } from '@/lib/normalize';
 import styles from '../admin.module.css';
 
-// Espelha o catálogo de src/config/constants.js na API — a key é o que libera a
-// tela de verdade. Painel, Perfil, Configurações e Planos não entram: são sempre
-// liberados, senão o usuário não conseguiria nem contratar um upgrade.
-const FEATURE_OPTIONS = [
-  { key: 'cenarios', label: 'Cenários' },
-  { key: 'historico', label: 'Histórico' },
-  { key: 'ranking', label: 'Ranking' },
-  { key: 'carteira', label: 'Carteira' },
-  { key: 'agenda', label: 'Agenda' },
-  { key: 'metas', label: 'Metas' },
-  { key: 'anotacoes', label: 'Anotações' },
-  { key: 'copiloto', label: 'Copiloto IA' },
-  { key: 'oportunidades', label: 'Lista de Oportunidades' },
-  { key: 'gerador', label: 'Gerador de abordagens' },
-  { key: 'whatsapp_copilot', label: 'Copiloto no WhatsApp' },
-];
+// O catálogo é carregado de /admin/plans/features, e não copiado para cá: uma
+// lista espelhada esquece de crescer quando uma funcionalidade nova entra na API,
+// e o admin fica sem conseguir liberá-la.
 
 // A cobrança do plano vive no sufixo da key: é ela que faz a landing e o checkout
 // separarem os planos entre Mensal e Anual.
@@ -98,6 +85,7 @@ export default function AdminPlanosPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [plans, setPlans] = useState([]);
+  const [featureOptions, setFeatureOptions] = useState([]);
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY);
@@ -121,8 +109,19 @@ export default function AdminPlanosPage() {
     }
   };
 
+  const loadFeatures = async () => {
+    try {
+      const res = await api.get('/admin/plans/features');
+      const list = res?.data || res || [];
+      setFeatureOptions(Array.isArray(list) ? list : []);
+    } catch (err) {
+      showToast(err.message || 'Erro ao carregar as funcionalidades.', 'error');
+    }
+  };
+
   useEffect(() => {
     load();
+    loadFeatures();
   }, []);
 
   const unlimited = Number(form.limitSimulations) < 0;
@@ -392,7 +391,7 @@ export default function AdminPlanosPage() {
           <div className={styles.field}>
             <span className={styles.fieldLabel}>Funcionalidades liberadas</span>
             <div className={styles.checkGrid}>
-              {FEATURE_OPTIONS.map((feature) => {
+              {featureOptions.map((feature) => {
                 const active = (form.permissions || []).includes(feature.key);
                 return (
                   <button
