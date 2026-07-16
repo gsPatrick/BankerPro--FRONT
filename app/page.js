@@ -183,12 +183,6 @@ export default function OnboardingContainer() {
           ? response.data.map(normalizePlan)
           : [];
         setPlans(list);
-        const recommendedIdx = list.findIndex((p) =>
-          String(p.key || '').toLowerCase().includes('premium')
-        );
-        const startPage =
-          recommendedIdx >= 0 ? Math.floor(recommendedIdx / PLANS_PER_PAGE) : 0;
-        setActivePageIndex(startPage);
       } catch (err) {
         if (!cancelled) {
           showToast(err.message || 'Não foi possível carregar os planos.');
@@ -205,7 +199,18 @@ export default function OnboardingContainer() {
     };
   }, [activeView]);
 
-  const plansPageCount = Math.max(1, Math.ceil(plans.length / PLANS_PER_PAGE));
+  const plansPageCount = Math.max(
+    1,
+    Math.ceil(filteredCheckoutPlans.length / PLANS_PER_PAGE)
+  );
+
+  // Trocar de Mensal para Anual troca o conjunto de páginas: voltar para a primeira
+  // evita ficar preso numa página que não existe mais no outro período.
+  useEffect(() => {
+    setActivePageIndex(0);
+    const track = plansTrackRef.current;
+    if (track) track.scrollTo({ left: 0, behavior: 'auto' });
+  }, [checkoutBillingPeriod]);
 
   const scrollToPlansPage = (pageIndex) => {
     const track = plansTrackRef.current;
@@ -1086,87 +1091,128 @@ export default function OnboardingContainer() {
                     </div>
                   </div>
 
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '14px',
-                    width: '100%',
-                    maxHeight: '440px',
-                    overflowY: 'auto',
-                    padding: '4px'
-                  }}>
-                    {filteredCheckoutPlans.map((plan) => {
-                      const price = formatPlanPrice(plan.price, plan.key);
-                      const isFree = isFreePlan(plan);
-                      const isRecommended = plan.key.includes('premium');
-                      const features = Array.isArray(plan.features) ? plan.features : [];
-                      const monthlyEquivalent = checkoutBillingPeriod === 'yearly' ? (price.value / 12).toFixed(2).replace('.', ',') : null;
+                  {filteredCheckoutPlans.length === 0 ? (
+                    <div className={styles.plansLoading}>
+                      <span>
+                        Nenhum plano {checkoutBillingPeriod === 'yearly' ? 'anual' : 'mensal'} disponível no momento.
+                      </span>
+                    </div>
+                  ) : (
+                  <div className={styles.plansCarousel}>
+                    {plansPageCount > 1 && (
+                      <button
+                        type="button"
+                        className={`${styles.plansNavBtn} ${styles.plansNavPrev}`}
+                        onClick={() => scrollPlans('prev')}
+                        disabled={activePageIndex === 0}
+                        aria-label="Planos anteriores"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <polyline points="15 18 9 12 15 6" />
+                        </svg>
+                      </button>
+                    )}
 
-                      return (
-                        <div
-                          key={plan.id || plan.key}
-                          className={`${styles.planCard} ${isRecommended ? styles.planCardPro : ''}`}
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            width: '100%',
-                            minHeight: 'auto',
-                            padding: '24px 20px',
-                            gap: '14px',
-                            borderRadius: '16px'
-                          }}
-                        >
-                          {isRecommended && (
-                            <div className={styles.planCardBadge} style={{ top: '16px', right: '16px' }}>Recomendado</div>
-                          )}
-                          <h3 className={styles.planName} style={{ fontSize: '1.2rem', paddingRight: '100px' }}>
-                            {cleanPlanName(plan.name)}
-                          </h3>
-                          
-                          <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <div className={styles.planPriceWrapper} style={{ margin: 0 }}>
-                              {price.currency && (
-                                <span className={styles.planPriceCurrency}>{price.currency}</span>
-                              )}
-                              <span className={styles.planPriceValue}>{price.label}</span>
-                              {price.period && (
-                                <span className={styles.planPricePeriod}>{price.period}</span>
-                              )}
-                            </div>
-                            {monthlyEquivalent && (
-                              <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.4)', marginTop: '2px' }}>
-                                Equivalente a R$ {monthlyEquivalent}/mês
-                              </span>
-                            )}
+                    <div
+                      className={styles.plansTrack}
+                      ref={plansTrackRef}
+                      onScroll={handlePlansScroll}
+                    >
+                      {Array.from({ length: plansPageCount }, (_, pageIndex) => {
+                        const pagePlans = filteredCheckoutPlans.slice(
+                          pageIndex * PLANS_PER_PAGE,
+                          pageIndex * PLANS_PER_PAGE + PLANS_PER_PAGE
+                        );
+
+                        return (
+                          <div key={`plans-page-${pageIndex}`} className={styles.plansPage}>
+                            {pagePlans.map((plan) => {
+                              const price = formatPlanPrice(plan.price, plan.key);
+                              const isFree = isFreePlan(plan);
+                              const isRecommended = String(plan.key || '').includes('premium');
+                              const features = Array.isArray(plan.features) ? plan.features : [];
+                              const monthlyEquivalent =
+                                checkoutBillingPeriod === 'yearly' && price.value
+                                  ? (price.value / 12).toFixed(2).replace('.', ',')
+                                  : null;
+
+                              return (
+                                <div
+                                  key={plan.id || plan.key}
+                                  className={`${styles.planCard} ${isRecommended ? styles.planCardPro : ''}`}
+                                >
+                                  {isRecommended && (
+                                    <div className={styles.planCardBadge}>Recomendado</div>
+                                  )}
+                                  <h3 className={styles.planName}>{cleanPlanName(plan.name)}</h3>
+                                  <div className={styles.planPriceWrapper}>
+                                    {price.currency && (
+                                      <span className={styles.planPriceCurrency}>{price.currency}</span>
+                                    )}
+                                    <span className={styles.planPriceValue}>{price.label}</span>
+                                    {price.period && (
+                                      <span className={styles.planPricePeriod}>{price.period}</span>
+                                    )}
+                                  </div>
+                                  {monthlyEquivalent && (
+                                    <span className={styles.planPriceEquivalent}>
+                                      Equivalente a R$ {monthlyEquivalent}/mês
+                                    </span>
+                                  )}
+                                  <ul className={styles.planFeatures}>
+                                    {features.map((feature) => (
+                                      <li key={feature}>
+                                        <CheckIcon />
+                                        {feature}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                  <Button
+                                    variant={isRecommended ? 'primary' : 'secondary'}
+                                    size="lg"
+                                    className={styles.fullWidthBtn}
+                                    loading={checkoutLoadingPlan === plan.key}
+                                    onClick={() => handleSelectPlan(plan)}
+                                  >
+                                    {isFree ? 'Começar grátis' : `Assinar ${cleanPlanName(plan.name)}`}
+                                  </Button>
+                                </div>
+                              );
+                            })}
                           </div>
+                        );
+                      })}
+                    </div>
 
-                          <ul className={styles.planFeatures} style={{
-                            display: 'grid',
-                            gridTemplateColumns: '1fr 1fr',
-                            gap: '8px 16px',
-                            margin: 0,
-                            padding: 0
-                          }}>
-                            {features.map((feature) => (
-                              <li key={feature} style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)' }}>
-                                <CheckIcon />
-                                {feature}
-                              </li>
-                            ))}
-                          </ul>
-                          <Button
-                            variant={isRecommended ? 'primary' : 'secondary'}
-                            size="md"
-                            className={styles.fullWidthBtn}
-                            loading={checkoutLoadingPlan === plan.key}
-                            onClick={() => handleSelectPlan(plan)}
-                          >
-                            {isFree ? 'Começar grátis' : `Assinar ${cleanPlanName(plan.name)}`}
-                          </Button>
-                        </div>
-                      );
-                    })}
+                    {plansPageCount > 1 && (
+                      <button
+                        type="button"
+                        className={`${styles.plansNavBtn} ${styles.plansNavNext}`}
+                        onClick={() => scrollPlans('next')}
+                        disabled={activePageIndex >= plansPageCount - 1}
+                        aria-label="Próximos planos"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      </button>
+                    )}
+
+                    {plansPageCount > 1 && (
+                      <div className={styles.plansDots}>
+                        {Array.from({ length: plansPageCount }, (_, index) => (
+                          <button
+                            key={`plans-dot-${index}`}
+                            type="button"
+                            className={`${styles.plansDot} ${index === activePageIndex ? styles.plansDotActive : ''}`}
+                            onClick={() => scrollToPlansPage(index)}
+                            aria-label={`Ir para página ${index + 1} de planos`}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
+                  )}
                 </div>
               )}
             </div>

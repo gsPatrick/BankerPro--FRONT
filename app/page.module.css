@@ -775,6 +775,11 @@
   color: var(--color-card-text-muted);
 }
 
+.planPriceEquivalent {
+  font-size: var(--text-xs);
+  color: var(--color-card-text-muted);
+}
+
 .planFeatures {
   list-style: none;
   padding: 0;
