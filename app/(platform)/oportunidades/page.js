@@ -55,6 +55,14 @@ function textToLines(value) {
     .filter(Boolean);
 }
 
+// A faixa etária só vira chip quando é uma restrição de verdade. Valores genéricos
+// ("Geral", "Todas", vazio) não agregam e só poluiriam o card.
+function isMeaningfulAge(value) {
+  const v = String(value || '').trim().toLowerCase();
+  if (!v) return false;
+  return !['geral', '-', '—', 'todos', 'todas', 'todas as idades', 'qualquer'].includes(v);
+}
+
 function SearchIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -364,16 +372,9 @@ export default function OportunidadesPage() {
               <p className={styles.cardProfile}>
                 {item.clientProfile || item.objective || 'Sem resumo de perfil.'}
               </p>
-              <div className={styles.metaRow}>
-                <div className={styles.metaItem}>
-                  <span>Idade</span>
-                  <strong>{item.ageRange || '—'}</strong>
-                </div>
-                <div className={styles.metaItem}>
-                  <span>Renda</span>
-                  <strong>{item.incomeRange || '—'}</strong>
-                </div>
-              </div>
+              {isMeaningfulAge(item.ageRange) ? (
+                <span className={styles.cardAge}>{item.ageRange}</span>
+              ) : null}
               <div className={styles.cardActions}>
                 <Button
                   type="button"
