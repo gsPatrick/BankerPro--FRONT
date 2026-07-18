@@ -71,3 +71,19 @@
     height: 500px;
   }
 }
+
+/* No celular o rodapé deve recuar: fonte menor, crédito bem discreto para não
+   disputar atenção. */
+@media (max-width: 640px) {
+  .bar {
+    padding: 14px 20px;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .bar a {
+    opacity: 0.5;
+    font-weight: 400;
+  }
+}
