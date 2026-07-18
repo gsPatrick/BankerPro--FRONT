@@ -262,7 +262,7 @@ export default function CarteiraPage() {
 
         <div className={styles.walletRight}>
           <div className={styles.walletMeta}>
-            <p className={styles.cardBrand}>BankerPro · Wallet</p>
+            <p className={styles.cardBrand}>Closer.IA · Wallet</p>
             <div className={styles.billChip} aria-hidden="true" />
           </div>
           <div className={styles.pocketStats}>

@@ -76,7 +76,7 @@ export default function DesignSystemPage() {
     <div className={styles.appContainer}>
       {/* Dynamic Top bar */}
       <NavBar
-        title="BankerPro DS"
+        title="Closer.IA DS"
         subtitle="Design System"
         actionRight={
           <Avatar size="sm" initials="PH" online={true} />

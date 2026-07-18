@@ -99,7 +99,7 @@ export default function ConectarWhatsappPage() {
   const numero = info?.copilotNumber;
   const numeroLimpo = numero ? String(numero).replace(/\D/g, '') : '';
   const waLink = numeroLimpo
-    ? `https://wa.me/${numeroLimpo}?text=${encodeURIComponent('Quero conectar meu WhatsApp ao BankerPro')}`
+    ? `https://wa.me/${numeroLimpo}?text=${encodeURIComponent('Quero conectar meu WhatsApp ao Closer.IA')}`
     : null;
 
   return (
@@ -161,7 +161,7 @@ export default function ConectarWhatsappPage() {
               <h2 className={styles.stepTitle}>Passo 1 — Mande uma mensagem</h2>
               <p className={styles.stepText}>
                 Para vincular seu número, mande qualquer mensagem no WhatsApp para o
-                número do BankerPro abaixo. Você vai receber um código na hora.
+                número do Closer.IA abaixo. Você vai receber um código na hora.
               </p>
               <div className={styles.numberBox}>{formatarNumero(numero)}</div>
 
