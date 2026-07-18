@@ -701,10 +701,6 @@ export default function OnboardingContainer() {
                   Já tenho conta
                 </Button>
               </div>
-
-              <footer className={styles.footer}>
-                <span>Desenvolvido sob o arquétipo Closer.IA</span>
-              </footer>
             </div>
           )}
 
