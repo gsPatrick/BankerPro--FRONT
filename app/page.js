@@ -651,10 +651,10 @@ export default function OnboardingContainer() {
               gap: '10px'
             }}
           >
-            <BrandMark style={{ width: '22px', height: '22px' }} />
+            <BrandMark style={{ width: '30px', height: '30px' }} />
             <span className={styles.systemLogoText} style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '18px',
+              fontSize: '16px',
               fontWeight: 800,
               letterSpacing: '-0.03em',
               color: '#ffffff'
