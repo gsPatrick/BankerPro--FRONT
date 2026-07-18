@@ -218,8 +218,7 @@ export default function CopilotoPage() {
           <p className={styles.eyebrow}>IA</p>
           <h1 className={styles.title}>Copiloto comercial</h1>
           <p className={styles.subtitle}>
-            Descreva a situação do cliente e receba modo de negociação, roteiro, objeções e
-            próximo passo — pronto para usar no atendimento.
+            Descreva a situação do cliente e receba a abordagem pronta para o atendimento.
           </p>
         </div>
       </section>
