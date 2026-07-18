@@ -224,7 +224,11 @@ export default function AdminConfigPage() {
                     <strong>WhatsApp Copilot</strong>
                     <span>
                       Status:{' '}
-                      {wa?.status || (wa?.exists ? 'DESCONHECIDO' : 'NÃO CONFIGURADO')}
+                      {wa?.status === 'CONNECTED'
+                        ? '🟢 Conectado'
+                        : wa?.exists
+                          ? `🔴 Desconectado${wa?.status && wa.status !== 'DISCONNECTED' ? ` (${wa.status})` : ''}`
+                          : 'NÃO CONFIGURADO'}
                     </span>
                   </div>
                   <div className={styles.actions}>
