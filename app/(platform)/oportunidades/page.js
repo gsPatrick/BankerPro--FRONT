@@ -77,6 +77,20 @@ function SearchIcon() {
   );
 }
 
+function ArrowIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M5 12h12M13 6l6 6-6 6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function readIsAdmin() {
   if (typeof window === 'undefined') return false;
   try {
@@ -360,7 +374,12 @@ export default function OportunidadesPage() {
       {pageItems.length > 0 ? (
         <div className={styles.grid}>
           {pageItems.map((item) => (
-            <article key={item.id} className={styles.card}>
+            <button
+              key={item.id}
+              type="button"
+              className={styles.card}
+              onClick={() => setSelected(item)}
+            >
               <div className={styles.cardTop}>
                 <span className={styles.productBadge}>{item.product}</span>
                 <span className={styles.channelBadge}>
@@ -375,16 +394,13 @@ export default function OportunidadesPage() {
               {isMeaningfulAge(item.ageRange) ? (
                 <span className={styles.cardAge}>{item.ageRange}</span>
               ) : null}
-              <div className={styles.cardActions}>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => setSelected(item)}
-                >
-                  Ver abordagem
-                </Button>
+              <div className={styles.cardFooter}>
+                <span className={styles.footerLabel}>Ver abordagem</span>
+                <span className={styles.cta} aria-hidden="true">
+                  <ArrowIcon />
+                </span>
               </div>
-            </article>
+            </button>
           ))}
         </div>
       ) : (
