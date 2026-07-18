@@ -10,6 +10,7 @@ import { pickField } from '@/lib/normalize';
 import styles from '../admin.module.css';
 
 const CATEGORIES = [
+  'Geral',
   'Investimentos',
   'Previdência',
   'Seguros',
