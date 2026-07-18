@@ -21,6 +21,7 @@ const INTEGRATION_KEYS = [
   { key: 'MP_PUBLIC_KEY', label: 'Mercado Pago Public Key' },
   { key: 'EVOLUTION_API_URL', label: 'Evolution API URL' },
   { key: 'EVOLUTION_API_KEY', label: 'Evolution API Key' },
+  { key: 'WHATSAPP_COPILOT_NUMBER', label: 'Número do Copiloto WhatsApp (para os usuários mandarem mensagem)' },
 ];
 
 export default function AdminConfigPage() {
