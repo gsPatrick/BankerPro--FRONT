@@ -388,9 +388,6 @@ export default function OportunidadesPage() {
                 </span>
               </div>
               <h2 className={styles.cardTitle}>{item.title}</h2>
-              <p className={styles.cardProfile}>
-                {item.clientProfile || item.objective || 'Sem resumo de perfil.'}
-              </p>
               {isMeaningfulAge(item.ageRange) ? (
                 <span className={styles.cardAge}>{item.ageRange}</span>
               ) : null}
