@@ -14,6 +14,20 @@ export default function PlatformLayout({ children }) {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [user, setUser] = useState(null);
 
+  // PWA: pede armazenamento persistente para o navegador NÃO descartar o localStorage
+  // sob pressão de espaço — é o que evita perder o token (e "deslogar") no app instalado.
+  // Silencioso e sem efeito colateral se o navegador não suportar.
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !navigator.storage?.persist) return;
+    Promise.resolve(navigator.storage.persisted?.())
+      .then((already) => {
+        if (!already) navigator.storage.persist().catch(() => {});
+      })
+      .catch(() => {
+        navigator.storage.persist().catch(() => {});
+      });
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
