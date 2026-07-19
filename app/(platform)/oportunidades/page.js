@@ -309,7 +309,7 @@ export default function OportunidadesPage() {
       <section className={styles.banner}>
         <div className={styles.bannerCopy}>
           <p className={styles.eyebrow}>Ferramenta comercial</p>
-          <h1 className={styles.title}>Lista de Oportunidades</h1>
+          <h1 className={styles.title}>Scripts</h1>
           <p className={styles.subtitle}>
             Escolha o produto que deseja trabalhar e veja roteiros prontos para
             abordar clientes com mais segurança.

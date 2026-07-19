@@ -16,7 +16,7 @@ const STEPS = [
     id: 'aborde',
     number: '02',
     title: 'Aborde com roteiro pronto',
-    body: 'Copiloto e Lista de Oportunidades entregam abertura, diagnóstico, respostas a objeções e fechamento — no canal certo.',
+    body: 'Copiloto e Scripts entregam abertura, diagnóstico, respostas a objeções e fechamento — no canal certo.',
     chips: ['Copiloto IA', 'Oportunidades', 'WhatsApp'],
     preview: 'opp',
   },

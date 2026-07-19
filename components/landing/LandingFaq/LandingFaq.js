@@ -14,7 +14,7 @@ const FAQ = [
   },
   {
     q: 'Quanto tempo leva para ver resultado?',
-    a: 'Bancários que treinam com consistência costumam ganhar segurança na abordagem já nas primeiras semanas — especialmente com a Lista de Oportunidades.',
+    a: 'Bancários que treinam com consistência costumam ganhar segurança na abordagem já nas primeiras semanas — especialmente com os Scripts.',
   },
   {
     q: 'Serve para quem atende e para quem gerencia?',

@@ -25,7 +25,7 @@ const FEATURES = [
   {
     id: 'oportunidades',
     kicker: 'Comercial',
-    title: 'Lista de Oportunidades',
+    title: 'Scripts',
     body: 'Roteiros prontos por produto e perfil — sem improvisar na hora da ligação.',
   },
   {
