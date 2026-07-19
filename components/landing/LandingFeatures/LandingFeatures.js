@@ -67,15 +67,16 @@ export default function LandingFeatures() {
     const update = () => {
       const rect = section.getBoundingClientRect();
       const scrollable = section.offsetHeight - window.innerHeight;
-      if (scrollable <= 0) {
+      const maxX = Math.max(track.scrollWidth - window.innerWidth, 0);
+      // Sem travessia horizontal (ex.: mobile empilhado na vertical): não transforma.
+      if (scrollable <= 0 || maxX <= 0) {
+        track.style.transform = 'none';
         setProgress(0);
         return;
       }
       const scrolled = Math.min(Math.max(-rect.top, 0), scrollable);
       const next = scrolled / scrollable;
       setProgress(next);
-
-      const maxX = Math.max(track.scrollWidth - window.innerWidth, 0);
       track.style.transform = `translate3d(${-maxX * next}px, 0, 0)`;
     };
 
