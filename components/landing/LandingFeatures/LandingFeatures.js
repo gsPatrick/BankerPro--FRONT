@@ -29,6 +29,18 @@ const FEATURES = [
     body: 'Roteiros prontos por produto e perfil — sem improvisar na hora da ligação.',
   },
   {
+    id: 'whatsapp',
+    kicker: 'No seu bolso',
+    title: 'Copiloto no WhatsApp',
+    body: 'Vincule seu número e use o Copiloto direto no WhatsApp, no meio do atendimento.',
+  },
+  {
+    id: 'audio',
+    kicker: 'Feedback',
+    title: 'Análise de Áudio',
+    body: 'Mande o áudio de uma negociação real e receba a avaliação da sua abordagem.',
+  },
+  {
     id: 'carteira',
     kicker: 'Gestão',
     title: 'Carteira',
