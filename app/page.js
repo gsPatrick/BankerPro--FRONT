@@ -160,6 +160,16 @@ export default function OnboardingContainer() {
       (code === 'BAD_REQUEST' && /checkout financeiro/i.test(text));
   };
 
+  // Se já existe sessão, a raiz não deve mostrar a landing/gate — entra direto no
+  // sistema. Isso resolve o PWA reabrindo na LP em vez de ficar no app. Só roda no
+  // mount: no login (sem token no mount) o fluxo de animação segue normal.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (localStorage.getItem('bankerpro_token')) {
+      router.replace('/home');
+    }
+  }, [router]);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);

@@ -4,7 +4,7 @@ export default function manifest() {
     short_name: 'Closer.IA',
     description:
       'Plataforma de treinamento de vendas e negociação comercial com IA',
-    start_url: '/?view=gate',
+    start_url: '/home',
     scope: '/',
     id: '/',
     display: 'standalone',
@@ -40,7 +40,7 @@ export default function manifest() {
         name: 'Abrir Closer.IA',
         short_name: 'Abrir',
         description: 'Abre a plataforma Closer.IA',
-        url: '/?view=gate',
+        url: '/home',
         icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }],
       },
     ],
