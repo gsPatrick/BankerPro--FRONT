@@ -92,6 +92,12 @@
   border: 3px solid var(--color-canvas);
 }
 
+/* O ícone do robô é menor que o círculo — aumenta o SVG dentro do botão central. */
+.centerIcon svg {
+  width: 28px;
+  height: 28px;
+}
+
 .centerItem.active .centerIcon,
 .centerItem:hover .centerIcon {
   transform: translateY(-18px) scale(1.04);
