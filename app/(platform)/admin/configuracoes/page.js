@@ -19,8 +19,9 @@ const INTEGRATION_KEYS = [
   { key: 'OPENAI_API_KEY', label: 'OpenAI API Key (transcrição de áudio)' },
   { key: 'MP_ACCESS_TOKEN', label: 'Mercado Pago Access Token' },
   { key: 'MP_PUBLIC_KEY', label: 'Mercado Pago Public Key' },
-  { key: 'EVOLUTION_API_URL', label: 'Evolution API URL' },
-  { key: 'EVOLUTION_API_KEY', label: 'Evolution API Key' },
+  { key: 'ZAPI_INSTANCE_ID', label: 'Z-API — ID da Instância' },
+  { key: 'ZAPI_INSTANCE_TOKEN', label: 'Z-API — Token da Instância' },
+  { key: 'ZAPI_CLIENT_TOKEN', label: 'Z-API — Client-Token (token de segurança da conta)' },
   { key: 'WHATSAPP_COPILOT_NUMBER', label: 'Número do Copiloto WhatsApp (para os usuários mandarem mensagem)' },
 ];
 
