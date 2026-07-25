@@ -40,6 +40,7 @@ export default function PlatformLayout({ children }) {
 
       let nextUser = null;
       let incomplete = false;
+      let meOk = false;
 
       try {
         const me = await api.get('/auth/me');
@@ -56,6 +57,7 @@ export default function PlatformLayout({ children }) {
         };
         localStorage.setItem('bankerpro_user', JSON.stringify(nextUser));
         incomplete = !isOnboardingCompleted(data);
+        meOk = true;
       } catch {
         try {
           const raw = localStorage.getItem('bankerpro_user');
@@ -63,6 +65,30 @@ export default function PlatformLayout({ children }) {
           incomplete = !isOnboardingCompleted(nextUser);
         } catch {
           incomplete = true;
+        }
+      }
+
+      // Gate de plano: sem assinatura ativa, a plataforma fica bloqueada e o
+      // usuário é mandado para o checkout. Admin passa direto. Quem acabou de
+      // pagar tem o flag local, então não é barrado antes de o webhook confirmar
+      // a assinatura. Só roda quando o /auth/me respondeu (online) — offline,
+      // não trancamos um assinante legítimo por causa de rede.
+      if (meOk && nextUser?.role !== 'admin') {
+        let hasPlan = false;
+        try {
+          const sub = await api.get('/subscription/current');
+          const s = sub?.data || sub;
+          hasPlan = Boolean(s?.planSelected || s?.plan_selected || s?.id);
+        } catch {
+          hasPlan = false;
+        }
+        try {
+          if (!hasPlan && localStorage.getItem('bankerpro_plan_selected')) hasPlan = true;
+        } catch { /* localStorage indisponível */ }
+
+        if (!hasPlan) {
+          if (!cancelled) router.replace('/?view=checkout');
+          return;
         }
       }
 

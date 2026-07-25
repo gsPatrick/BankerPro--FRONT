@@ -165,6 +165,11 @@ export default function OnboardingContainer() {
   // mount: no login (sem token no mount) o fluxo de animação segue normal.
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    // Um ?view= explícito na URL (checkout/login/register/gate) tem prioridade e
+    // NÃO deve pular para a home — senão o gate de plano, que redireciona para
+    // /?view=checkout, entraria em loop com este atalho de sessão.
+    const explicitView = new URLSearchParams(window.location.search).get('view');
+    if (explicitView) return;
     if (localStorage.getItem('bankerpro_token')) {
       router.replace('/home');
     }
@@ -174,7 +179,7 @@ export default function OnboardingContainer() {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
       const view = searchParams.get('view');
-      if (view === 'login' || view === 'register' || view === 'gate') {
+      if (view === 'login' || view === 'register' || view === 'gate' || view === 'checkout') {
         setActiveView(view);
       }
     }
