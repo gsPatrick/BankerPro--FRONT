@@ -1031,6 +1031,19 @@ export default function OnboardingContainer() {
                     }
                   />
 
+                  {resetPassword && (
+                    <div className={styles.strengthMeter}>
+                      <div className={styles.strengthBars}>
+                        <div className={`${styles.strengthBar} ${getPasswordStrength(resetPassword).score >= 1 ? styles.active : ''}`} style={{ backgroundColor: getPasswordStrength(resetPassword).score >= 1 ? getPasswordStrength(resetPassword).color : '' }} />
+                        <div className={`${styles.strengthBar} ${getPasswordStrength(resetPassword).score >= 2 ? styles.active : ''}`} style={{ backgroundColor: getPasswordStrength(resetPassword).score >= 2 ? getPasswordStrength(resetPassword).color : '' }} />
+                        <div className={`${styles.strengthBar} ${getPasswordStrength(resetPassword).score >= 3 ? styles.active : ''}`} style={{ backgroundColor: getPasswordStrength(resetPassword).score >= 3 ? getPasswordStrength(resetPassword).color : '' }} />
+                      </div>
+                      <span className={styles.strengthLabel} style={{ color: getPasswordStrength(resetPassword).color }}>
+                        Senha {getPasswordStrength(resetPassword).label.toLowerCase()}
+                      </span>
+                    </div>
+                  )}
+
                   <FormField
                     id="resetConfirm"
                     label="Confirme a nova senha"
