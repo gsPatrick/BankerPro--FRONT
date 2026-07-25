@@ -384,6 +384,9 @@ export default function OnboardingContainer() {
   const [resetPassword, setResetPassword] = useState('');
   const [resetPasswordError, setResetPasswordError] = useState('');
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetConfirm, setResetConfirm] = useState('');
+  const [resetConfirmError, setResetConfirmError] = useState('');
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
   const goToForgot = (prefillEmail = '') => {
@@ -394,7 +397,22 @@ export default function OnboardingContainer() {
     setResetCodeError('');
     setResetPassword('');
     setResetPasswordError('');
+    setResetConfirm('');
+    setResetConfirmError('');
     setActiveView('forgot');
+  };
+
+  // Passo 2 → 3: valida só o formato do código (6 dígitos) e avança para a
+  // criação da senha. O código é conferido de verdade no servidor no submit
+  // final; se estiver errado, o usuário volta para este passo.
+  const handleCodeContinue = (e) => {
+    if (e?.preventDefault) e.preventDefault();
+    setResetCodeError('');
+    if (!resetCode || resetCode.length < 6) {
+      setResetCodeError('Digite o código de 6 dígitos');
+      return;
+    }
+    setForgotStep(3);
   };
 
   const handleForgotRequest = async (e) => {
@@ -423,16 +441,16 @@ export default function OnboardingContainer() {
 
   const handleResetSubmit = async (e) => {
     e.preventDefault();
-    setResetCodeError('');
     setResetPasswordError('');
+    setResetConfirmError('');
 
     let hasError = false;
-    if (!resetCode || resetCode.length < 6) {
-      setResetCodeError('Digite o código de 6 dígitos');
-      hasError = true;
-    }
     if (!resetPassword || resetPassword.length < 6) {
       setResetPasswordError('A senha deve ter no mínimo 6 caracteres');
+      hasError = true;
+    }
+    if (resetPassword !== resetConfirm) {
+      setResetConfirmError('As senhas não coincidem');
       hasError = true;
     }
     if (hasError) return;
@@ -450,7 +468,9 @@ export default function OnboardingContainer() {
       setActiveView('login');
     } catch (err) {
       if (err.code === 'INVALID_OTP' || err.code === 'OTP_EXPIRED') {
-        setResetCodeError(err.message || 'Código inválido ou expirado.');
+        // Código errado/expirado só é detectável aqui: volta ao passo do código.
+        setResetCodeError(err.message || 'Código inválido ou expirado. Confira e tente de novo.');
+        setForgotStep(2);
       } else if (err.code === 'WEAK_PASSWORD') {
         setResetPasswordError(err.message);
       } else {
@@ -908,11 +928,14 @@ export default function OnboardingContainer() {
                 <p className={styles.formSubtitle}>
                   {forgotStep === 1
                     ? 'Informe seu e-mail para receber o código de redefinição.'
-                    : 'Digite o código que enviamos e crie uma nova senha.'}
+                    : forgotStep === 2
+                      ? 'Digite o código de 6 dígitos que enviamos para o seu e-mail.'
+                      : 'Crie a sua nova senha.'}
                 </p>
                 <div className={styles.stepIndicator}>
                   <div className={`${styles.stepIndicatorBar} ${forgotStep >= 1 ? styles.stepActive : ''}`} />
                   <div className={`${styles.stepIndicatorBar} ${forgotStep >= 2 ? styles.stepActive : ''}`} />
+                  <div className={`${styles.stepIndicatorBar} ${forgotStep >= 3 ? styles.stepActive : ''}`} />
                 </div>
               </div>
 
@@ -942,7 +965,7 @@ export default function OnboardingContainer() {
               )}
 
               {forgotStep === 2 && (
-                <form onSubmit={handleResetSubmit} className={styles.formStack}>
+                <form onSubmit={handleCodeContinue} className={styles.formStack}>
                   <FormField
                     id="resetCode"
                     label="Código de verificação"
@@ -954,6 +977,20 @@ export default function OnboardingContainer() {
                     type="text"
                   />
 
+                  <Button variant="primary" type="submit" size="lg" className={styles.submitBtn}>
+                    Continuar
+                  </Button>
+
+                  <div style={{ textAlign: 'center', marginTop: 4 }}>
+                    <button type="button" className={styles.accentTextBtn} onClick={handleForgotRequest} disabled={forgotLoading}>
+                      {forgotLoading ? 'Reenviando...' : 'Reenviar código'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {forgotStep === 3 && (
+                <form onSubmit={handleResetSubmit} className={styles.formStack}>
                   <FormField
                     id="resetPassword"
                     label="Nova senha"
@@ -991,13 +1028,50 @@ export default function OnboardingContainer() {
                     }
                   />
 
+                  <FormField
+                    id="resetConfirm"
+                    label="Confirme a nova senha"
+                    placeholder="••••••••"
+                    value={resetConfirm}
+                    onChange={(e) => setResetConfirm(e.target.value)}
+                    state={resetConfirmError ? 'error' : 'default'}
+                    helperText={resetConfirmError}
+                    type={showResetConfirm ? 'text' : 'password'}
+                    iconLeft={
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                    }
+                    iconRight={
+                      <button
+                        type="button"
+                        onClick={() => setShowResetConfirm(!showResetConfirm)}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--color-text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+                        aria-label={showResetConfirm ? 'Esconder senha' : 'Mostrar senha'}
+                      >
+                        {showResetConfirm ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        )}
+                      </button>
+                    }
+                  />
+
                   <Button variant="primary" type="submit" size="lg" loading={resetLoading} className={styles.submitBtn}>
                     Redefinir senha
                   </Button>
 
                   <div style={{ textAlign: 'center', marginTop: 4 }}>
-                    <button type="button" className={styles.accentTextBtn} onClick={handleForgotRequest} disabled={forgotLoading}>
-                      {forgotLoading ? 'Reenviando...' : 'Reenviar código'}
+                    <button type="button" className={styles.accentTextBtn} onClick={() => setForgotStep(2)}>
+                      ← Voltar para o código
                     </button>
                   </div>
                 </form>
