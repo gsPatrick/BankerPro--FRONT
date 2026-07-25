@@ -368,6 +368,95 @@ export default function OnboardingContainer() {
   };
 
   /* ────────────────────────────────────────────────────────
+     FORGOT / RESET PASSWORD CONTROLS
+     ──────────────────────────────────────────────────────── */
+  const [forgotStep, setForgotStep] = useState(1);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotError, setForgotError] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [resetCode, setResetCode] = useState('');
+  const [resetCodeError, setResetCodeError] = useState('');
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetPasswordError, setResetPasswordError] = useState('');
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const goToForgot = (prefillEmail = '') => {
+    setForgotStep(1);
+    setForgotEmail(prefillEmail || '');
+    setForgotError('');
+    setResetCode('');
+    setResetCodeError('');
+    setResetPassword('');
+    setResetPasswordError('');
+    setActiveView('forgot');
+  };
+
+  const handleForgotRequest = async (e) => {
+    if (e?.preventDefault) e.preventDefault();
+    setForgotError('');
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!forgotEmail || !emailRegex.test(forgotEmail)) {
+      setForgotError('Informe um e-mail válido');
+      return;
+    }
+
+    setForgotLoading(true);
+    try {
+      await api.post('/auth/forgot-password', { email: forgotEmail });
+      // A resposta é sempre genérica (não revela se o e-mail existe). Avança para
+      // o passo do código de qualquer forma.
+      setForgotStep(2);
+      showToast('Se este e-mail tiver conta, enviamos um código de redefinição.');
+    } catch (err) {
+      showToast(err.message || 'Não foi possível enviar o código. Tente novamente.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetSubmit = async (e) => {
+    e.preventDefault();
+    setResetCodeError('');
+    setResetPasswordError('');
+
+    let hasError = false;
+    if (!resetCode || resetCode.length < 6) {
+      setResetCodeError('Digite o código de 6 dígitos');
+      hasError = true;
+    }
+    if (!resetPassword || resetPassword.length < 6) {
+      setResetPasswordError('A senha deve ter no mínimo 6 caracteres');
+      hasError = true;
+    }
+    if (hasError) return;
+
+    setResetLoading(true);
+    try {
+      await api.post('/auth/reset-password', {
+        email: forgotEmail,
+        otpCode: resetCode,
+        newPassword: resetPassword,
+      });
+      showToast('Senha redefinida com sucesso! Faça login com a nova senha.');
+      setLoginEmail(forgotEmail);
+      setLoginPassword('');
+      setActiveView('login');
+    } catch (err) {
+      if (err.code === 'INVALID_OTP' || err.code === 'OTP_EXPIRED') {
+        setResetCodeError(err.message || 'Código inválido ou expirado.');
+      } else if (err.code === 'WEAK_PASSWORD') {
+        setResetPasswordError(err.message);
+      } else {
+        showToast(err.message || 'Não foi possível redefinir a senha.');
+      }
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  /* ────────────────────────────────────────────────────────
      REGISTER FORM CONTROLS
      ──────────────────────────────────────────────────────── */
   const [regEmail, setRegEmail] = useState('');
@@ -608,8 +697,8 @@ export default function OnboardingContainer() {
   // Conditional layouts classes
   const layoutClasses = [
     styles.splitLayout,
-    // Gate = 70/30 (welcome). Login/register/checkout = painel ativo 50/50.
-    activeView === 'login' || activeView === 'register' || activeView === 'checkout'
+    // Gate = 70/30 (welcome). Login/register/forgot/checkout = painel ativo 50/50.
+    activeView === 'login' || activeView === 'register' || activeView === 'forgot' || activeView === 'checkout'
       ? styles.formActive
       : '',
     activeView === 'checkout' ? styles.checkoutActive : '',
@@ -791,10 +880,127 @@ export default function OnboardingContainer() {
                 </Button>
               </form>
 
+              <div style={{ textAlign: 'center', marginTop: 12 }}>
+                <button className={styles.accentTextBtn} onClick={() => goToForgot(loginEmail)}>
+                  Esqueci minha senha
+                </button>
+              </div>
+
               <div className={styles.authFooter}>
                 <span>Novo no Closer.IA? </span>
                 <button className={styles.accentTextBtn} onClick={() => setActiveView('register')}>
                   Crie sua conta agora
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* VIEW: Forgot Password */}
+          {activeView === 'forgot' && (
+            <div className={styles.formView}>
+              <div className={styles.authHeader}>
+                <h1 className={styles.systemLogo}>Closer.IA</h1>
+                <p className={styles.formSubtitle}>
+                  {forgotStep === 1
+                    ? 'Informe seu e-mail para receber o código de redefinição.'
+                    : 'Digite o código que enviamos e crie uma nova senha.'}
+                </p>
+                <div className={styles.stepIndicator}>
+                  <div className={`${styles.stepIndicatorBar} ${forgotStep >= 1 ? styles.stepActive : ''}`} />
+                  <div className={`${styles.stepIndicatorBar} ${forgotStep >= 2 ? styles.stepActive : ''}`} />
+                </div>
+              </div>
+
+              {forgotStep === 1 && (
+                <form onSubmit={handleForgotRequest} className={styles.formStack}>
+                  <FormField
+                    id="forgotEmail"
+                    label="E-mail da conta"
+                    placeholder="nome@email.com"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    state={forgotError ? 'error' : 'default'}
+                    helperText={forgotError}
+                    type="email"
+                    iconLeft={
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                      </svg>
+                    }
+                  />
+
+                  <Button variant="primary" type="submit" size="lg" loading={forgotLoading} className={styles.submitBtn}>
+                    Enviar código
+                  </Button>
+                </form>
+              )}
+
+              {forgotStep === 2 && (
+                <form onSubmit={handleResetSubmit} className={styles.formStack}>
+                  <FormField
+                    id="resetCode"
+                    label="Código de verificação"
+                    placeholder="000000"
+                    value={resetCode}
+                    onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    state={resetCodeError ? 'error' : 'default'}
+                    helperText={resetCodeError}
+                    type="text"
+                  />
+
+                  <FormField
+                    id="resetPassword"
+                    label="Nova senha"
+                    placeholder="••••••••"
+                    value={resetPassword}
+                    onChange={(e) => setResetPassword(e.target.value)}
+                    state={resetPasswordError ? 'error' : 'default'}
+                    helperText={resetPasswordError}
+                    type={showResetPassword ? 'text' : 'password'}
+                    iconLeft={
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                    }
+                    iconRight={
+                      <button
+                        type="button"
+                        onClick={() => setShowResetPassword(!showResetPassword)}
+                        style={{ background: 'transparent', border: 'none', color: 'var(--color-text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
+                        aria-label={showResetPassword ? 'Esconder senha' : 'Mostrar senha'}
+                      >
+                        {showResetPassword ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        )}
+                      </button>
+                    }
+                  />
+
+                  <Button variant="primary" type="submit" size="lg" loading={resetLoading} className={styles.submitBtn}>
+                    Redefinir senha
+                  </Button>
+
+                  <div style={{ textAlign: 'center', marginTop: 4 }}>
+                    <button type="button" className={styles.accentTextBtn} onClick={handleForgotRequest} disabled={forgotLoading}>
+                      {forgotLoading ? 'Reenviando...' : 'Reenviar código'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              <div className={styles.authFooter}>
+                <button className={styles.accentTextBtn} onClick={() => setActiveView('login')}>
+                  ← Voltar para o login
                 </button>
               </div>
             </div>
