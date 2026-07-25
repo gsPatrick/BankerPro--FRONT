@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import FormField from '@/components/molecules/FormField/FormField';
+import OtpInput from '@/components/molecules/OtpInput/OtpInput';
 import Button from '@/components/atoms/Button/Button';
 import Card from '@/components/molecules/Card/Card';
 import Badge from '@/components/atoms/Badge/Badge';
@@ -966,16 +967,18 @@ export default function OnboardingContainer() {
 
               {forgotStep === 2 && (
                 <form onSubmit={handleCodeContinue} className={styles.formStack}>
-                  <FormField
-                    id="resetCode"
-                    label="Código de verificação"
-                    placeholder="000000"
+                  <OtpInput
                     value={resetCode}
-                    onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    state={resetCodeError ? 'error' : 'default'}
-                    helperText={resetCodeError}
-                    type="text"
+                    onChange={(v) => { setResetCode(v); if (resetCodeError) setResetCodeError(''); }}
+                    length={6}
+                    error={Boolean(resetCodeError)}
+                    autoFocus
                   />
+                  {resetCodeError && (
+                    <p style={{ textAlign: 'center', color: 'var(--color-danger)', fontSize: 'var(--text-sm)', margin: 0 }}>
+                      {resetCodeError}
+                    </p>
+                  )}
 
                   <Button variant="primary" type="submit" size="lg" className={styles.submitBtn}>
                     Continuar
