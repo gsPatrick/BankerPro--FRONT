@@ -676,6 +676,16 @@ export default function OnboardingContainer() {
   };
 
   const handleSelectPlan = async (plan) => {
+    // Registra QUAL plano foi clicado, com preço e período — é o "começou a
+    // compra de um plano específico" que alimenta o funil e o abandono.
+    trackClick('plano:selecionado', {
+      planKey: plan?.key,
+      planName: plan?.name,
+      price: plan?.price,
+      period: checkoutBillingPeriod,
+      isFree: isFreePlan(plan),
+    });
+
     // Free plan nunca abre modal de pagamento
     if (isFreePlan(plan)) {
       setSelectedPaidPlan(null);
@@ -774,8 +784,8 @@ export default function OnboardingContainer() {
   if (activeView === 'welcome') {
     return (
       <LandingPage
-        onLogin={() => setActiveView('gate')}
-        onRegister={() => setActiveView('register')}
+        onLogin={() => { trackClick('lp:entrar'); setActiveView('gate'); }}
+        onRegister={() => { trackClick('lp:comecar-agora'); setActiveView('register'); }}
       />
     );
   }
@@ -838,7 +848,7 @@ export default function OnboardingContainer() {
                   variant="primary"
                   size="lg"
                   className={styles.fullWidthBtn}
-                  onClick={() => setActiveView('register')}
+                  onClick={() => { trackClick('gate:criar-conta'); setActiveView('register'); }}
                 >
                   Criar conta nova
                 </Button>
@@ -847,7 +857,7 @@ export default function OnboardingContainer() {
                   variant="secondary"
                   size="lg"
                   className={styles.fullWidthBtn}
-                  onClick={() => setActiveView('login')}
+                  onClick={() => { trackClick('gate:ja-tenho-conta'); setActiveView('login'); }}
                 >
                   Já tenho conta
                 </Button>
@@ -1400,7 +1410,7 @@ export default function OnboardingContainer() {
                           fontWeight: 700,
                           transition: 'all 0.2s'
                         }}
-                        onClick={() => setCheckoutBillingPeriod('monthly')}
+                        onClick={() => { trackClick('plano:periodo', { period: 'monthly' }); setCheckoutBillingPeriod('monthly'); }}
                       >
                         Mensal
                       </button>
@@ -1417,7 +1427,7 @@ export default function OnboardingContainer() {
                           fontWeight: 700,
                           transition: 'all 0.2s'
                         }}
-                        onClick={() => setCheckoutBillingPeriod('yearly')}
+                        onClick={() => { trackClick('plano:periodo', { period: 'yearly' }); setCheckoutBillingPeriod('yearly'); }}
                       >
                         Anual (Economize)
                       </button>

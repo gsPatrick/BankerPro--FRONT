@@ -58,10 +58,44 @@ const EVENT_LABEL = {
   pageview: 'Visualizou a página',
   click: 'Clicou',
   identify: 'Preencheu dados',
-  checkout_start: 'Iniciou o checkout',
+  checkout_start: 'Chegou na tela de planos',
   checkout_abandon: 'Abandonou o checkout',
   purchase: 'Concluiu a compra',
   custom: 'Evento',
+};
+
+// Nomes técnicos de clique → texto amigável no timeline.
+const CLICK_LABEL = {
+  'lp:comecar-agora': 'Começar agora (landing)',
+  'lp:entrar': 'Entrar (landing)',
+  'gate:criar-conta': 'Criar conta nova',
+  'gate:ja-tenho-conta': 'Já tenho conta',
+  'plano:selecionado': 'Selecionou um plano',
+  'plano:periodo': 'Trocou o período',
+  'funil:login': 'Abriu o login',
+  'funil:register': 'Abriu o cadastro',
+  'funil:gate': 'Abriu as opções de entrada',
+  'funil:forgot': 'Abriu recuperar senha',
+};
+
+// Descreve um evento de forma legível, puxando o que importa do metadata.
+const describeEvent = (e) => {
+  const m = e.metadata || {};
+  if (e.type === 'click') {
+    let base = CLICK_LABEL[e.name] || e.name || 'Clique';
+    if (e.name === 'plano:selecionado') {
+      const parts = [m.planName || m.planKey, m.price ? `R$ ${m.price}` : null, m.period === 'yearly' ? 'anual' : m.period === 'monthly' ? 'mensal' : null].filter(Boolean);
+      if (parts.length) base += ` — ${parts.join(' · ')}`;
+    } else if (e.name === 'plano:periodo') {
+      base += m.period === 'yearly' ? ': Anual' : ': Mensal';
+    }
+    return base;
+  }
+  if (e.type === 'purchase') {
+    const parts = [m.plan, m.price ? `R$ ${m.price}` : null].filter(Boolean);
+    return parts.length ? `${EVENT_LABEL.purchase} — ${parts.join(' · ')}` : EVENT_LABEL.purchase;
+  }
+  return EVENT_LABEL[e.type] || e.type;
 };
 
 function Kpi({ label, value, hint, tone }) {
@@ -327,7 +361,7 @@ export default function AdminAnalyticsPage() {
               {detail.events.length === 0 && <p className={styles.empty}>Sem eventos registrados.</p>}
               {detail.events.map((e) => (
                 <div className={styles.titem} key={e.id}>
-                  <div className={styles.tType}>{EVENT_LABEL[e.type] || e.type}{e.name && e.type === 'click' ? `: ${e.name}` : ''}</div>
+                  <div className={styles.tType}>{describeEvent(e)}</div>
                   <div className={styles.tMeta}>{fmtDate(e.occurredAt || e.createdAt)}{e.path ? ` · ${e.path}` : ''}</div>
                 </div>
               ))}
