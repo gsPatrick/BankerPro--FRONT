@@ -8,10 +8,21 @@ import { api } from '@/lib/api';
 import styles from './analytics.module.css';
 
 const RANGES = [
+  { days: 1, label: 'Hoje' },
   { days: 7, label: '7 dias' },
   { days: 30, label: '30 dias' },
   { days: 90, label: '90 dias' },
+  { days: 365, label: '1 ano' },
 ];
+
+// Monta "Cidade · Estado · País" com o que existir.
+const fmtGeo = (obj, { short = false } = {}) => {
+  if (!obj) return '—';
+  const parts = short
+    ? [obj.city, obj.region].filter(Boolean)
+    : [obj.city, obj.region, obj.country].filter(Boolean);
+  return parts.length ? parts.join(' · ') : '—';
+};
 
 const FILTERS = [
   { key: 'all', label: 'Todos' },
@@ -263,6 +274,15 @@ export default function AdminAnalyticsPage() {
               </div>
               <Bars rows={overview.bySource} keyName="source" />
             </div>
+            <div className={styles.panel}>
+              <div className={styles.sectionHead}>
+                <div>
+                  <h2 className={styles.sectionTitle}>Regiões</h2>
+                  <p className={styles.sectionDesc}>Estado/país estimado pelo IP das sessões.</p>
+                </div>
+              </div>
+              <Bars rows={overview.byRegion} keyName="region" />
+            </div>
           </div>
         </>
       )}
@@ -298,6 +318,7 @@ export default function AdminAnalyticsPage() {
                 <th>Pessoa</th>
                 <th>Estágio</th>
                 <th>Dispositivo</th>
+                <th>Local</th>
                 <th>IP</th>
                 <th>Origem</th>
                 <th>Sessões</th>
@@ -306,9 +327,9 @@ export default function AdminAnalyticsPage() {
             </thead>
             <tbody>
               {loadingVisitors ? (
-                <tr><td colSpan={7}><div style={{ display: 'grid', placeItems: 'center', padding: 24 }}><Spinner /></div></td></tr>
+                <tr><td colSpan={8}><div style={{ display: 'grid', placeItems: 'center', padding: 24 }}><Spinner /></div></td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={7}><p className={styles.empty}>Nenhum visitante neste filtro ainda.</p></td></tr>
+                <tr><td colSpan={8}><p className={styles.empty}>Nenhum visitante neste filtro ainda.</p></td></tr>
               ) : items.map((v, i) => (
                 <tr key={v.visitorId || v.id || i} className={styles.clickable} onClick={() => v.visitorId && openDetail(v.visitorId)}>
                   <td>
@@ -317,6 +338,7 @@ export default function AdminAnalyticsPage() {
                   </td>
                   <td>{stageBadge(v)}</td>
                   <td>{v.deviceType || '—'}<div className={styles.muted}>{[v.os, v.browser].filter(Boolean).join(' · ')}</div></td>
+                  <td className={styles.muted}>{fmtGeo(v, { short: true })}</td>
                   <td className={styles.muted}>{v.ipAddress || '—'}</td>
                   <td className={styles.muted}>{v.firstUtmSource || 'direto'}</td>
                   <td>{fmtInt(v.sessionsCount)}</td>
@@ -350,6 +372,7 @@ export default function AdminAnalyticsPage() {
               <div className={styles.detailItem}><p className="k">E-mail</p><p className="v">{detail.visitor.email || '—'}</p></div>
               <div className={styles.detailItem}><p className="k">Telefone</p><p className="v">{detail.visitor.phone || '—'}</p></div>
               <div className={styles.detailItem}><p className="k">IP</p><p className="v">{detail.visitor.ipAddress || '—'}</p></div>
+              <div className={styles.detailItem}><p className="k">Localização</p><p className="v">{fmtGeo(detail.visitor)}</p></div>
               <div className={styles.detailItem}><p className="k">Dispositivo</p><p className="v">{[detail.visitor.deviceType, detail.visitor.os, detail.visitor.browser].filter(Boolean).join(' · ') || '—'}</p></div>
               <div className={styles.detailItem}><p className="k">Origem (1º toque)</p><p className="v">{detail.visitor.firstUtmSource || 'direto'}{detail.visitor.firstUtmCampaign ? ` · ${detail.visitor.firstUtmCampaign}` : ''}</p></div>
               <div className={styles.detailItem}><p className="k">Primeira visita</p><p className="v">{fmtDate(detail.visitor.firstSeenAt)}</p></div>
@@ -363,13 +386,24 @@ export default function AdminAnalyticsPage() {
               <div className={styles.sessionCard} key={s.sessionId}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
                   <span className={styles.strong}>{fmtDate(s.startedAt)}</span>
-                  <span className={styles.muted}>{fmtDuration(s.durationSeconds)} · {fmtInt(s.pageviewsCount)} pageviews · {fmtInt(s.clicksCount)} cliques</span>
+                  <span className={`${styles.badge} ${styles.badgeInfo}`}>⏱ {fmtDuration(s.durationSeconds)}</span>
                 </div>
-                <div className={styles.muted} style={{ marginTop: 4 }}>
-                  {s.deviceType} · {s.utmSource || 'direto'}
-                  {s.checkoutStarted && !s.purchased ? ' · abandonou o checkout' : ''}
-                  {s.purchased ? ' · comprou' : ''}
+                <div className={styles.muted} style={{ marginTop: 6 }}>
+                  {fmtInt(s.pageviewsCount)} páginas · {fmtInt(s.clicksCount)} cliques · {s.deviceType || '—'}
+                  {fmtGeo(s, { short: true }) !== '—' ? ` · ${fmtGeo(s, { short: true })}` : ''}
                 </div>
+                <div className={styles.muted} style={{ marginTop: 2 }}>
+                  Origem: {s.utmSource || 'direto'}
+                  {s.referrer ? ` · ref: ${s.referrer}` : ''}
+                  {s.landingPath ? ` · entrou em ${s.landingPath}` : ''}
+                </div>
+                {(s.checkoutStarted || s.purchased) && (
+                  <div style={{ marginTop: 6 }}>
+                    {s.purchased
+                      ? <span className={`${styles.badge} ${styles.badgeGreen}`}>Comprou nesta sessão</span>
+                      : <span className={`${styles.badge} ${styles.badgeWarn}`}>Abandonou o checkout</span>}
+                  </div>
+                )}
               </div>
             ))}
 
