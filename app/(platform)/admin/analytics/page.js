@@ -20,6 +20,20 @@ const FILTERS = [
   { key: 'purchased', label: 'Compraram' },
 ];
 
+// A API serializa TODA resposta em snake_case (toSnakeCase no sendSuccess).
+// Convertemos de volta para camelCase aqui, recursivamente, para o resto da
+// página ler os campos direto (visitorId, byDevice, avgDurationSeconds, etc.).
+const snakeToCamel = (s) => s.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
+const camelizeDeep = (val) => {
+  if (Array.isArray(val)) return val.map(camelizeDeep);
+  if (val && typeof val === 'object') {
+    const out = {};
+    for (const k of Object.keys(val)) out[snakeToCamel(k)] = camelizeDeep(val[k]);
+    return out;
+  }
+  return val;
+};
+
 const fmtInt = (n) => new Intl.NumberFormat('pt-BR').format(Number(n || 0));
 const fmtPct = (n) => `${(Number(n || 0) * 100).toFixed(1)}%`;
 
@@ -149,7 +163,7 @@ export default function AdminAnalyticsPage() {
     let cancel = false;
     setLoadingOverview(true);
     api.get(`/analytics/overview?days=${days}`)
-      .then((res) => { if (!cancel) setOverview(res?.data || res); })
+      .then((res) => { if (!cancel) setOverview(camelizeDeep(res?.data || res)); })
       .catch((err) => { if (!cancel) showToast(err.message || 'Erro ao carregar métricas.'); })
       .finally(() => { if (!cancel) setLoadingOverview(false); });
     return () => { cancel = true; };
@@ -160,7 +174,7 @@ export default function AdminAnalyticsPage() {
     setLoadingVisitors(true);
     const params = new URLSearchParams({ page: String(page), limit: '20', filter, q });
     api.get(`/analytics/visitors?${params.toString()}`)
-      .then((res) => { if (!cancel) setVisitors(res?.data || res); })
+      .then((res) => { if (!cancel) setVisitors(camelizeDeep(res?.data || res)); })
       .catch((err) => { if (!cancel) showToast(err.message || 'Erro ao carregar visitantes.'); })
       .finally(() => { if (!cancel) setLoadingVisitors(false); });
     return () => { cancel = true; };
@@ -173,7 +187,7 @@ export default function AdminAnalyticsPage() {
     setDetail({ loading: true });
     try {
       const res = await api.get(`/analytics/visitors/${visitorId}`);
-      setDetail(res?.data || res);
+      setDetail(camelizeDeep(res?.data || res));
     } catch (err) {
       showToast(err.message || 'Erro ao carregar detalhe.');
       setDetail(null);
