@@ -109,11 +109,12 @@ function Kpi({ label, value, hint, tone }) {
 }
 
 function Bars({ rows, keyName }) {
-  const max = Math.max(1, ...rows.map((r) => r.count));
+  const safe = Array.isArray(rows) ? rows : [];
+  const max = Math.max(1, ...safe.map((r) => r.count || 0));
   return (
     <div>
-      {rows.length === 0 && <p className={styles.empty}>Sem dados no período.</p>}
-      {rows.map((r) => (
+      {safe.length === 0 && <p className={styles.empty}>Sem dados no período.</p>}
+      {safe.map((r) => (
         <div className={styles.barRow} key={r[keyName]}>
           <span className={styles.barLabel}>{r[keyName]}</span>
           <div className={styles.barTrack}><div className={styles.barFill} style={{ width: `${(r.count / max) * 100}%` }} /></div>
@@ -181,8 +182,10 @@ export default function AdminAnalyticsPage() {
     }
   };
 
-  const funnel = overview?.funnel;
-  const items = visitors?.items || [];
+  const funnel = overview?.funnel || {};
+  const oVisitors = overview?.visitors || {};
+  const oSessions = overview?.sessions || {};
+  const items = Array.isArray(visitors?.items) ? visitors.items : [];
 
   const stageBadge = (v) => {
     if (v.purchased) return <span className={`${styles.badge} ${styles.badgeGreen}`}>Comprou</span>;
@@ -217,10 +220,10 @@ export default function AdminAnalyticsPage() {
       ) : (
         <>
           <div className={styles.kpis}>
-            <Kpi label="Visitantes" value={fmtInt(overview.visitors.range)} hint={`${fmtInt(overview.visitors.today)} hoje`} />
-            <Kpi label="Identificados" value={fmtInt(overview.visitors.identified)} hint="Deixaram nome/e-mail" />
-            <Kpi label="Sessões" value={fmtInt(overview.sessions.range)} hint={`${fmtInt(overview.sessions.today)} hoje`} />
-            <Kpi label="Tempo médio / sessão" value={fmtDuration(overview.sessions.avgDurationSeconds)} hint="Duração média da visita" />
+            <Kpi label="Visitantes" value={fmtInt(oVisitors.range)} hint={`${fmtInt(oVisitors.today)} hoje`} />
+            <Kpi label="Identificados" value={fmtInt(oVisitors.identified)} hint="Deixaram nome/e-mail" />
+            <Kpi label="Sessões" value={fmtInt(oSessions.range)} hint={`${fmtInt(oSessions.today)} hoje`} />
+            <Kpi label="Tempo médio / sessão" value={fmtDuration(oSessions.avgDurationSeconds)} hint="Duração média da visita" />
             <Kpi label="Checkouts iniciados" value={fmtInt(funnel.checkoutStarts)} hint="Começaram uma compra" />
             <Kpi label="Compras" value={fmtInt(funnel.purchases)} hint="Concluíram o pagamento" tone="green" />
             <Kpi label="Abandonos" value={fmtInt(funnel.abandoned)} hint="Iniciaram e não compraram" tone="warn" />
@@ -340,9 +343,9 @@ export default function AdminAnalyticsPage() {
             </div>
 
             <h3 className={styles.sectionTitle} style={{ margin: '4px 0 10px' }}>
-              Sessões ({detail.sessions.length})
+              Sessões ({(detail.sessions || []).length})
             </h3>
-            {detail.sessions.map((s) => (
+            {(detail.sessions || []).map((s) => (
               <div className={styles.sessionCard} key={s.sessionId}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
                   <span className={styles.strong}>{fmtDate(s.startedAt)}</span>
@@ -358,8 +361,8 @@ export default function AdminAnalyticsPage() {
 
             <h3 className={styles.sectionTitle} style={{ margin: '18px 0 10px' }}>Linha do tempo</h3>
             <div className={styles.timeline}>
-              {detail.events.length === 0 && <p className={styles.empty}>Sem eventos registrados.</p>}
-              {detail.events.map((e) => (
+              {(detail.events || []).length === 0 && <p className={styles.empty}>Sem eventos registrados.</p>}
+              {(detail.events || []).map((e) => (
                 <div className={styles.titem} key={e.id}>
                   <div className={styles.tType}>{describeEvent(e)}</div>
                   <div className={styles.tMeta}>{fmtDate(e.occurredAt || e.createdAt)}{e.path ? ` · ${e.path}` : ''}</div>
