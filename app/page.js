@@ -13,6 +13,7 @@ import Modal from '@/components/organisms/Modal/Modal';
 import Spinner from '@/components/atoms/Spinner/Spinner';
 import PaymentCheckout from '@/components/organisms/PaymentCheckout/PaymentCheckout';
 import { api } from '@/lib/api';
+import { initTracker, trackClick, trackCheckoutStart, trackPurchase, identify as trackIdentify } from '@/lib/tracker';
 import { clearOnboardingLocal, markOnboardingCompletedLocal } from '@/lib/onboarding';
 import LandingPage from '@/components/landing/LandingPage/LandingPage';
 import BrandMark from '@/components/BrandMark/BrandMark';
@@ -186,6 +187,22 @@ export default function OnboardingContainer() {
     }
   }, []);
 
+  // Tracking da LP: inicia o rastreamento (pageview, tempo, device, origem) uma
+  // única vez na entrada. Só roda aqui, na landing.
+  useEffect(() => {
+    initTracker();
+  }, []);
+
+  // Rastreia cada etapa do funil ao trocar de view. 'checkout' marca início de
+  // compra — é o que permite depois medir/recuperar abandono.
+  useEffect(() => {
+    if (activeView === 'checkout') {
+      trackCheckoutStart({ view: activeView });
+    } else if (['gate', 'login', 'register', 'forgot'].includes(activeView)) {
+      trackClick(`funil:${activeView}`, { view: activeView });
+    }
+  }, [activeView]);
+
   useEffect(() => {
     if (activeView !== 'checkout') return;
 
@@ -320,6 +337,9 @@ export default function OnboardingContainer() {
     }
 
     if (hasError) return;
+
+    // Liga o visitante (e o IP) ao e-mail assim que ele tenta entrar.
+    trackIdentify({ email: loginEmail });
 
     setLoginLoading(true);
     try {
@@ -592,6 +612,11 @@ export default function OnboardingContainer() {
       }
 
       if (hasError) return;
+
+      // Dados preenchidos: liga o IP/visitante a essa pessoa já aqui, antes do
+      // fim do cadastro — assim, se ela abandonar, ainda temos como recuperá-la.
+      trackIdentify({ name: regFullName, email: regEmail, phone: regWhatsapp.replace(/\D/g, '') });
+
       setRegStep(2);
       return;
     }
@@ -703,6 +728,7 @@ export default function OnboardingContainer() {
 
   const handlePaymentSuccess = () => {
     const planKey = selectedPaidPlan?.key || 'paid';
+    trackPurchase({ plan: planKey, price: selectedPaidPlan?.price });
     setSelectedPaidPlan(null);
     markPlanSelected(planKey);
     enterPlatformWithLoginAnimation('Pagamento confirmado...');
