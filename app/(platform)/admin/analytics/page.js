@@ -292,11 +292,11 @@ export default function AdminAnalyticsPage() {
                 <tr><td colSpan={7}><div style={{ display: 'grid', placeItems: 'center', padding: 24 }}><Spinner /></div></td></tr>
               ) : items.length === 0 ? (
                 <tr><td colSpan={7}><p className={styles.empty}>Nenhum visitante neste filtro ainda.</p></td></tr>
-              ) : items.map((v) => (
-                <tr key={v.visitorId} className={styles.clickable} onClick={() => openDetail(v.visitorId)}>
+              ) : items.map((v, i) => (
+                <tr key={v.visitorId || v.id || i} className={styles.clickable} onClick={() => v.visitorId && openDetail(v.visitorId)}>
                   <td>
                     <div className={styles.strong}>{v.name || 'Anônimo'}</div>
-                    <div className={styles.muted}>{v.email || v.visitorId.slice(0, 8)}</div>
+                    <div className={styles.muted}>{v.email || (v.visitorId || '').slice(0, 8) || '—'}</div>
                   </td>
                   <td>{stageBadge(v)}</td>
                   <td>{v.deviceType || '—'}<div className={styles.muted}>{[v.os, v.browser].filter(Boolean).join(' · ')}</div></td>
