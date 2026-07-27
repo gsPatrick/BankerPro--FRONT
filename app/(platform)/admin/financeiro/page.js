@@ -6,6 +6,19 @@ import Toast from '@/components/molecules/Toast/Toast';
 import { api } from '@/lib/api';
 import styles from '../admin.module.css';
 
+// A API serializa a resposta em snake_case (toSnakeCase no sendSuccess). Converte
+// de volta para camelCase para a tela ler userName/planName/planPrice etc.
+const snakeToCamel = (s) => s.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
+const camelizeDeep = (val) => {
+  if (Array.isArray(val)) return val.map(camelizeDeep);
+  if (val && typeof val === 'object') {
+    const out = {};
+    for (const k of Object.keys(val)) out[snakeToCamel(k)] = camelizeDeep(val[k]);
+    return out;
+  }
+  return val;
+};
+
 export default function AdminFinanceiroPage() {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
@@ -20,7 +33,7 @@ export default function AdminFinanceiroPage() {
     setLoading(true);
     try {
       const res = await api.get('/admin/financeiro');
-      setSummary(res?.data || res || null);
+      setSummary(camelizeDeep(res?.data || res || null));
     } catch (err) {
       showToast(err.message || 'Erro ao carregar dados financeiros.', 'error');
     } finally {
