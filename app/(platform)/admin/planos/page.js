@@ -41,6 +41,7 @@ const EMPTY = {
   billingPeriod: 'monthly',
   durationDays: 30,
   isFree: false,
+  trialDays: 0, // teste grátis de plano pago (0 = sem teste)
   name: '',
   price: 0,
   permissions: [],
@@ -64,6 +65,7 @@ function normalizePlan(raw = {}) {
     billingPeriod: pickField(raw, 'billingPeriod', 'billing_period') || 'monthly',
     durationDays: Number(pickField(raw, 'durationDays', 'duration_days') ?? 30),
     isFree: Boolean(pickField(raw, 'isFree', 'is_free')),
+    trialDays: Number(pickField(raw, 'trialDays', 'trial_days') ?? 0),
     limitSimulations: Number(pickField(raw, 'limitSimulations', 'limit_simulations') ?? 10),
     limits: raw.limits && typeof raw.limits === 'object' ? raw.limits : {},
     permissions: Array.isArray(raw.permissions) ? raw.permissions : [],
@@ -135,6 +137,7 @@ export default function AdminPlanosPage() {
       billingPeriod: legacyFree ? 'custom' : (plan.billingPeriod || 'monthly'),
       durationDays: plan.durationDays || 30,
       isFree: Boolean(plan.isFree) || legacyFree,
+      trialDays: Number(plan.trialDays || 0),
       name: plan.name,
       price: plan.price,
       permissions: plan.permissions,
@@ -212,6 +215,7 @@ export default function AdminPlanosPage() {
       billingPeriod: form.billingPeriod,
       durationDays: Number(form.durationDays) || periodMeta(form.billingPeriod).days || 30,
       isFree: Boolean(form.isFree),
+      trialDays: form.isFree ? 0 : Math.max(0, Number(form.trialDays) || 0),
       permissions: form.permissions || [],
       limits,
       // Mantém o rótulo "X Simulações" do card coerente com o limite de cenários.
@@ -293,6 +297,9 @@ export default function AdminPlanosPage() {
                       {plan.isFree
                         ? 'Grátis'
                         : Number(plan.price).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      {!plan.isFree && Number(plan.trialDays) > 0 && (
+                        <div style={{ fontSize: 11, color: 'var(--color-success)' }}>{plan.trialDays}d grátis</div>
+                      )}
                     </td>
                     <td>
                       {(plan.limits?.cenarios ?? plan.limitSimulations) < 0 ? 'Ilimitado' : (plan.limits?.cenarios ?? plan.limitSimulations)}
@@ -386,11 +393,29 @@ export default function AdminPlanosPage() {
               Plano gratuito (zera o preço)
             </button>
             <span className={styles.hint}>
-              Vale para qualquer período. Combine com <strong>Personalizado</strong> para um trial
-              (ex.: 7 dias grátis): quando o prazo acaba, a assinatura expira e a pessoa é
-              obrigada a assinar um plano pago.
+              Marque só se o plano for 100% gratuito (sem cobrança nunca). Para um plano PAGO
+              com dias grátis no início (estilo Netflix), use o campo abaixo.
             </span>
           </div>
+
+          {!form.isFree && (
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>Período de teste grátis (dias)</span>
+              <input
+                className={styles.input}
+                type="number"
+                min={0}
+                value={form.trialDays}
+                placeholder="0 = sem teste"
+                onChange={(e) => setForm((f) => ({ ...f, trialDays: e.target.value }))}
+              />
+              <span className={styles.hint}>
+                Plano <strong>pago</strong> com dias grátis no começo. A pessoa usa grátis por N
+                dias (com os limites do plano) e, quando acaba, precisa assinar/pagar para
+                continuar. No checkout aparece “{Number(form.trialDays) > 0 ? `${form.trialDays} dias grátis` : 'X dias grátis'} · depois R$ {form.price || 0}”. 0 = sem teste.
+              </span>
+            </label>
+          )}
 
           <label className={styles.field}>
             <span className={styles.fieldLabel}>Preço</span>

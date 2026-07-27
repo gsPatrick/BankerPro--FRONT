@@ -72,6 +72,7 @@ function normalizePlan(plan) {
     billingPeriod: plan.billing_period ?? plan.billingPeriod ?? null,
     durationDays: plan.duration_days ?? plan.durationDays ?? null,
     isFree: plan.is_free ?? plan.isFree ?? false,
+    trialDays: Number(plan.trial_days ?? plan.trialDays ?? 0),
     limitSimulations: plan.limit_simulations ?? plan.limitSimulations,
     features: plan.features || [],
   };
@@ -759,6 +760,36 @@ export default function OnboardingContainer() {
         setCheckoutLoadingPlan('');
       }
       return;
+    }
+
+    // Plano PAGO com período de teste grátis (Netflix): começa o teste, sem
+    // cobrança agora. Se a pessoa já usou o teste (ou o plano não tem), cai no
+    // pagamento normal.
+    if (Number(plan.trialDays) > 0) {
+      setSelectedPaidPlan(null);
+      setCheckoutLoadingPlan(plan.key);
+      try {
+        const response = await api.post('/subscription/checkout', {
+          planType: plan.key,
+          paymentMethod: 'trial',
+        });
+        if (response?.success || response?.data) {
+          markPlanSelected(plan.key);
+          setCheckoutLoadingPlan('');
+          enterPlatformWithLoginAnimation('Teste grátis ativado...');
+          return;
+        }
+      } catch (err) {
+        setCheckoutLoadingPlan('');
+        // Já usou o teste ou plano sem teste → segue para o pagamento.
+        if (err.code === 'TRIAL_ALREADY_USED' || err.code === 'NO_TRIAL') {
+          setSelectedPaidPlan(plan);
+          return;
+        }
+        showToast(err.message || 'Não foi possível iniciar o teste grátis.');
+        return;
+      }
+      setCheckoutLoadingPlan('');
     }
 
     setSelectedPaidPlan(plan);
@@ -1500,6 +1531,7 @@ export default function OnboardingContainer() {
                             {pagePlans.map((plan) => {
                               const price = planPriceInfo(plan);
                               const isFree = isFreePlan(plan) || plan.isFree || planPeriodInfo(plan) === 'free';
+                              const trialDays = !isFree ? Number(plan.trialDays || 0) : 0;
                               const isRecommended = String(plan.key || '').includes('premium');
                               const features = Array.isArray(plan.features) ? plan.features : [];
                               // Equivalente mensal só faz sentido no plano anual.
@@ -1531,6 +1563,11 @@ export default function OnboardingContainer() {
                                       Equivalente a R$ {monthlyEquivalent}/mês
                                     </span>
                                   )}
+                                  {trialDays > 0 && (
+                                    <span className={styles.planPriceEquivalent} style={{ color: 'var(--color-success)', fontWeight: 700 }}>
+                                      🎁 {trialDays} dias grátis · depois {price.currency} {price.label}{price.period}
+                                    </span>
+                                  )}
                                   <ul className={styles.planFeatures}>
                                     {features.map((feature) => (
                                       <li key={feature}>
@@ -1546,7 +1583,7 @@ export default function OnboardingContainer() {
                                     loading={checkoutLoadingPlan === plan.key}
                                     onClick={() => handleSelectPlan(plan)}
                                   >
-                                    {isFree ? 'Começar grátis' : `Assinar ${cleanPlanName(plan.name)}`}
+                                    {isFree ? 'Começar grátis' : trialDays > 0 ? 'Começar teste grátis' : `Assinar ${cleanPlanName(plan.name)}`}
                                   </Button>
                                 </div>
                               );
