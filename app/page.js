@@ -92,7 +92,9 @@ function planPriceInfo(plan) {
   const value = parsePlanPrice(plan?.price);
   const bp = planPeriodInfo(plan);
   if (plan?.isFree || bp === 'free' || value === null || value <= 0) {
-    return { label: 'Grátis', period: '', currency: '', value: 0 };
+    // Trial: "Grátis por N dias" quando é personalizado com prazo.
+    const period = (bp === 'custom' && plan?.durationDays) ? `por ${plan.durationDays} dias` : '';
+    return { label: 'Grátis', period, currency: '', value: 0 };
   }
   const formatted = Number.isInteger(value) ? String(value) : value.toFixed(2).replace('.', ',');
   let period = '/mês';

@@ -9,13 +9,14 @@ import { api } from '@/lib/api';
 import { pickField } from '@/lib/normalize';
 import styles from '../admin.module.css';
 
-// Períodos de cobrança. Mensal/Anual mantêm o sufixo na key (a landing agrupa os
-// dois no mesmo seletor); Personalizado e Gratuito usam a key como digitada.
+// Períodos de cobrança (só a periodicidade). Mensal/Anual mantêm o sufixo na
+// key (a landing agrupa os dois no mesmo seletor); Personalizado usa a key como
+// digitada. "Gratuito" NÃO é período — é uma flag (isFree) que qualquer período
+// pode ter (ex.: Personalizado de 7 dias + gratuito = trial que expira).
 const BILLING_PERIODS = [
   { value: 'monthly', label: 'Mensal', suffix: '_monthly', days: 30 },
   { value: 'yearly', label: 'Anual', suffix: '_yearly', days: 365 },
   { value: 'custom', label: 'Personalizado', suffix: '', days: null },
-  { value: 'free', label: 'Gratuito', suffix: '', days: 365 },
 ];
 
 // Funcionalidades com limite numérico de uso por ciclo (as demais são só
@@ -69,7 +70,7 @@ function normalizePlan(raw = {}) {
   };
 }
 
-const PERIOD_LABEL = { monthly: 'Mensal', yearly: 'Anual', custom: 'Personalizado', free: 'Gratuito' };
+const PERIOD_LABEL = { monthly: 'Mensal', yearly: 'Anual', custom: 'Personalizado' };
 
 export default function AdminPlanosPage() {
   const [loading, setLoading] = useState(true);
@@ -127,11 +128,13 @@ export default function AdminPlanosPage() {
     if (limits.cenarios === undefined && plan.limitSimulations !== undefined) {
       limits.cenarios = plan.limitSimulations;
     }
+    // 'free' era período no modelo antigo: converte para custom + isFree.
+    const legacyFree = plan.billingPeriod === 'free';
     setForm({
       keyBase: keyBaseFrom(plan.key),
-      billingPeriod: plan.billingPeriod || 'monthly',
+      billingPeriod: legacyFree ? 'custom' : (plan.billingPeriod || 'monthly'),
       durationDays: plan.durationDays || 30,
-      isFree: Boolean(plan.isFree) || plan.billingPeriod === 'free',
+      isFree: Boolean(plan.isFree) || legacyFree,
       name: plan.name,
       price: plan.price,
       permissions: plan.permissions,
@@ -146,11 +149,13 @@ export default function AdminPlanosPage() {
       return {
         ...f,
         billingPeriod: value,
-        isFree: value === 'free',
-        price: value === 'free' ? 0 : f.price,
         durationDays: meta.days ?? (f.durationDays || 30),
       };
     });
+  };
+
+  const toggleFree = () => {
+    setForm((f) => ({ ...f, isFree: !f.isFree, price: !f.isFree ? 0 : f.price }));
   };
 
   const toggleFeature = (featureKey) => {
@@ -206,7 +211,7 @@ export default function AdminPlanosPage() {
       price: form.isFree ? 0 : Number(form.price) || 0,
       billingPeriod: form.billingPeriod,
       durationDays: Number(form.durationDays) || periodMeta(form.billingPeriod).days || 30,
-      isFree: form.billingPeriod === 'free' || form.isFree,
+      isFree: Boolean(form.isFree),
       permissions: form.permissions || [],
       limits,
       // Mantém o rótulo "X Simulações" do card coerente com o limite de cenários.
@@ -366,6 +371,25 @@ export default function AdminPlanosPage() {
                 />
               </label>
             )}
+          </div>
+
+          <div className={styles.field}>
+            <span className={styles.fieldLabel}>Gratuito</span>
+            <button
+              type="button"
+              className={`${styles.checkItem} ${form.isFree ? styles.checkItemActive : ''}`}
+              style={{ alignSelf: 'flex-start', margin: 0 }}
+              onClick={toggleFree}
+              aria-pressed={form.isFree}
+            >
+              <span className={styles.checkBox}>{form.isFree ? <CheckIcon /> : null}</span>
+              Plano gratuito (zera o preço)
+            </button>
+            <span className={styles.hint}>
+              Vale para qualquer período. Combine com <strong>Personalizado</strong> para um trial
+              (ex.: 7 dias grátis): quando o prazo acaba, a assinatura expira e a pessoa é
+              obrigada a assinar um plano pago.
+            </span>
           </div>
 
           <label className={styles.field}>
