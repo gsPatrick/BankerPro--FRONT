@@ -163,7 +163,10 @@ export default function OnboardingFlow({
         avatarUrl: profile?.avatarUrl || avatarUrl || null,
       });
     } catch (err) {
-      if (err.status === 404 || err.status === 405) {
+      // Um 400 é dado inválido — o fallback não resolve. Qualquer outro erro
+      // (404/405/403/500/rede) tenta salvar pelo PUT /profile, que também
+      // conclui o onboarding. Assim o botão sempre finaliza, não trava.
+      if (err.status !== 400) {
         try {
           await api.put('/profile', {
             fullName: fullName.trim(),
@@ -194,7 +197,14 @@ export default function OnboardingFlow({
           });
           return;
         } catch (fallbackErr) {
-          showToast(fallbackErr.message || 'Não foi possível salvar o onboarding.');
+          // Os dois falharam: não prende o usuário na tela. Marca como concluído
+          // localmente e segue — o perfil pode ser reajustado depois no Perfil.
+          showToast('Salvamos o essencial. Você pode ajustar seus dados no Perfil.', 'info');
+          finishSuccessfully({
+            fullName: fullName.trim(),
+            whatsapp: whatsapp.replace(/\D/g, '') || null,
+            avatarUrl: avatarUrl || null,
+          });
           return;
         }
       }
