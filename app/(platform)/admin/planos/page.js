@@ -246,10 +246,6 @@ export default function AdminPlanosPage() {
     return <div className={styles.loading}><Spinner size="lg" /></div>;
   }
 
-  const enabledLimitable = LIMITABLE
-    .map((k) => featureOptions.find((f) => f.key === k))
-    .filter((f) => f && (form.permissions || []).includes(f.key));
-
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -392,64 +388,62 @@ export default function AdminPlanosPage() {
           </label>
 
           <div className={styles.field}>
-            <span className={styles.fieldLabel}>Funcionalidades liberadas</span>
-            <div className={styles.checkGrid}>
+            <span className={styles.fieldLabel}>Funcionalidades e quantas vezes pode usar</span>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
               {featureOptions.map((feature) => {
                 const active = (form.permissions || []).includes(feature.key);
+                const limitable = LIMITABLE.includes(feature.key);
+                const unlimited = getLimit(feature.key) < 0;
                 return (
-                  <button
+                  <div
                     key={feature.key}
-                    type="button"
-                    className={`${styles.checkItem} ${active ? styles.checkItemActive : ''}`}
-                    onClick={() => toggleFeature(feature.key)}
-                    aria-pressed={active}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--color-border)', flexWrap: 'wrap' }}
                   >
-                    <span className={styles.checkBox}>{active ? <CheckIcon /> : null}</span>
-                    {feature.label}
-                  </button>
+                    <button
+                      type="button"
+                      className={`${styles.checkItem} ${active ? styles.checkItemActive : ''}`}
+                      style={{ flex: '1 1 170px', margin: 0 }}
+                      onClick={() => toggleFeature(feature.key)}
+                      aria-pressed={active}
+                    >
+                      <span className={styles.checkBox}>{active ? <CheckIcon /> : null}</span>
+                      {feature.label}
+                    </button>
+
+                    {active && limitable && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <input
+                          className={styles.input}
+                          style={{ width: 82 }}
+                          type="number"
+                          min={0}
+                          disabled={unlimited}
+                          value={unlimited ? '' : getLimit(feature.key)}
+                          placeholder="∞"
+                          onChange={(e) => setLimit(feature.key, Math.max(0, Number(e.target.value) || 0))}
+                        />
+                        <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>usos</span>
+                        <button
+                          type="button"
+                          className={`${styles.limitToggle} ${unlimited ? styles.limitToggleActive : ''}`}
+                          onClick={() => toggleUnlimited(feature.key)}
+                        >
+                          Ilimitado
+                        </button>
+                      </div>
+                    )}
+                    {active && !limitable && (
+                      <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>acesso liberado</span>
+                    )}
+                  </div>
                 );
               })}
             </div>
             <span className={styles.hint}>
-              Desmarcado = bloqueado para o assinante. Painel, Perfil, Configurações e Planos são sempre liberados.
-            </span>
-          </div>
-
-          <div className={styles.field}>
-            <span className={styles.fieldLabel}>Limite de uso por ciclo</span>
-            {enabledLimitable.length === 0 ? (
-              <p className={styles.hint}>Ative uma funcionalidade acima (Cenários, Copiloto, Gerador, Análise de Áudio, Carteira, Metas, Anotações ou WhatsApp) para definir o limite dela.</p>
-            ) : (
-              <div className={styles.formGrid} style={{ gap: 8 }}>
-                {enabledLimitable.map((feature) => {
-                  const unlimited = getLimit(feature.key) < 0;
-                  return (
-                    <div key={feature.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ flex: 1, fontSize: 13 }}>{feature.label}</span>
-                      <input
-                        className={styles.input}
-                        style={{ width: 110 }}
-                        type="number"
-                        min={0}
-                        disabled={unlimited}
-                        value={unlimited ? '' : getLimit(feature.key)}
-                        placeholder={unlimited ? 'Ilimitado' : 'Ex: 10'}
-                        onChange={(e) => setLimit(feature.key, Math.max(0, Number(e.target.value) || 0))}
-                      />
-                      <button
-                        type="button"
-                        className={`${styles.limitToggle} ${unlimited ? styles.limitToggleActive : ''}`}
-                        onClick={() => toggleUnlimited(feature.key)}
-                      >
-                        Ilimitado
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            <span className={styles.hint}>
-              O teto vale por ciclo do plano ({form.billingPeriod === 'custom' ? `${form.durationDays || 0} dias` : periodMeta(form.billingPeriod).days + ' dias'}). Ao atingir, o assinante é convidado a fazer upgrade.
+              Marque para liberar. Nas que têm contagem, defina <strong>quantos usos por ciclo</strong>
+              {' '}({form.billingPeriod === 'custom' ? `${form.durationDays || 0} dias` : (periodMeta(form.billingPeriod).days || 30) + ' dias'})
+              {' '}ou deixe <strong>Ilimitado</strong>. Ao atingir o teto, o assinante é convidado a fazer upgrade.
+              Histórico, Ranking, Agenda e Oportunidades são só acesso (sem contagem). Painel, Perfil, Configurações e Planos são sempre liberados.
             </span>
           </div>
         </div>
