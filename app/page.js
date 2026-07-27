@@ -69,9 +69,36 @@ function normalizePlan(plan) {
     key: plan.key,
     name: plan.name,
     price: plan.price,
+    billingPeriod: plan.billing_period ?? plan.billingPeriod ?? null,
+    durationDays: plan.duration_days ?? plan.durationDays ?? null,
+    isFree: plan.is_free ?? plan.isFree ?? false,
     limitSimulations: plan.limit_simulations ?? plan.limitSimulations,
     features: plan.features || [],
   };
+}
+
+// Período efetivo do plano: usa o campo billingPeriod; se ausente (plano antigo),
+// infere do sufixo da key.
+function planPeriodInfo(plan) {
+  if (plan?.billingPeriod) return plan.billingPeriod;
+  const key = String(plan?.key || '').toLowerCase();
+  if (/(_yearly|_annual|yearly|anual|annual)/.test(key)) return 'yearly';
+  return 'monthly';
+}
+
+// Preço + rótulo de período respeitando o período do próprio plano (mensal,
+// anual, personalizado com N dias, ou gratuito).
+function planPriceInfo(plan) {
+  const value = parsePlanPrice(plan?.price);
+  const bp = planPeriodInfo(plan);
+  if (plan?.isFree || bp === 'free' || value === null || value <= 0) {
+    return { label: 'Grátis', period: '', currency: '', value: 0 };
+  }
+  const formatted = Number.isInteger(value) ? String(value) : value.toFixed(2).replace('.', ',');
+  let period = '/mês';
+  if (bp === 'yearly') period = '/ano';
+  else if (bp === 'custom') period = plan?.durationDays ? `/${plan.durationDays} dias` : '';
+  return { label: formatted, period, currency: 'R$', value };
 }
 
 const PLANS_PER_PAGE = 2;
@@ -101,12 +128,11 @@ export default function OnboardingContainer() {
 
   const filteredCheckoutPlans = useMemo(() => {
     return plans.filter((plan) => {
-      const key = String(plan.key || '').toLowerCase();
-      if (checkoutBillingPeriod === 'monthly') {
-        return key.endsWith('_monthly') || (!key.endsWith('_yearly') && !key.endsWith('_annual') && !key.includes('yearly') && !key.includes('anual'));
-      } else {
-        return key.endsWith('_yearly') || key.endsWith('_annual') || key.includes('yearly') || key.includes('anual');
-      }
+      const bp = planPeriodInfo(plan);
+      // Personalizado e Gratuito aparecem sempre, em qualquer aba — cada um
+      // mostra o próprio período no card.
+      if (bp === 'custom' || bp === 'free' || plan.isFree) return true;
+      return checkoutBillingPeriod === 'monthly' ? bp === 'monthly' : bp === 'yearly';
     });
   }, [plans, checkoutBillingPeriod]);
 
@@ -1470,12 +1496,13 @@ export default function OnboardingContainer() {
                         return (
                           <div key={`plans-page-${pageIndex}`} className={styles.plansPage}>
                             {pagePlans.map((plan) => {
-                              const price = formatPlanPrice(plan.price, plan.key);
-                              const isFree = isFreePlan(plan);
+                              const price = planPriceInfo(plan);
+                              const isFree = isFreePlan(plan) || plan.isFree || planPeriodInfo(plan) === 'free';
                               const isRecommended = String(plan.key || '').includes('premium');
                               const features = Array.isArray(plan.features) ? plan.features : [];
+                              // Equivalente mensal só faz sentido no plano anual.
                               const monthlyEquivalent =
-                                checkoutBillingPeriod === 'yearly' && price.value
+                                planPeriodInfo(plan) === 'yearly' && price.value
                                   ? (price.value / 12).toFixed(2).replace('.', ',')
                                   : null;
 
