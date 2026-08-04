@@ -412,7 +412,17 @@ export default function OnboardingContainer() {
         err.code === 'INVALID_CREDENTIALS' ||
         /e-mail ou senha/i.test(err.message || '');
 
-      if (credentialsError) {
+      // Quem abandonou o cadastro no meio tem senha certa e e-mail pendente.
+      // Levar direto para a tela do código evita o beco sem saída de "login
+      // recusado" sem explicar o que fazer.
+      if (err.code === 'EMAIL_NOT_VERIFIED') {
+        setVerifyEmail(loginEmail);
+        setVerifyCode('');
+        setVerifyError('');
+        setActiveView('verify');
+        showToast('Confirme seu e-mail para continuar. Enviamos um código novo.');
+        api.post('/auth/resend-otp', { email: loginEmail }).catch(() => {});
+      } else if (credentialsError) {
         setLoginPasswordError(err.message || 'E-mail ou senha inválidos.');
       } else {
         showToast(err.message || 'Não foi possível fazer login. Tente novamente.');
@@ -551,6 +561,14 @@ export default function OnboardingContainer() {
   const [regFullNameError, setRegFullNameError] = useState('');
   const [regWhatsappError, setRegWhatsappError] = useState('');
 
+  // Confirmação de e-mail: a conta só passa a existir de verdade depois que o
+  // código enviado para a caixa é digitado aqui.
+  const [verifyEmail, setVerifyEmail] = useState('');
+  const [verifyCode, setVerifyCode] = useState('');
+  const [verifyError, setVerifyError] = useState('');
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyResending, setVerifyResending] = useState(false);
+
   // Terms sheet modal states
   const [termsOpen, setTermsOpen] = useState(false);
   const [termsText, setTermsText] = useState('Carregando termos...');
@@ -658,8 +676,8 @@ export default function OnboardingContainer() {
     if (!regPassword) {
       setRegPasswordError('Senha é obrigatória');
       hasError = true;
-    } else if (regPassword.length < 6) {
-      setRegPasswordError('A senha deve ter no mínimo 6 caracteres');
+    } else if (regPassword.length < 8) {
+      setRegPasswordError('A senha deve ter no mínimo 8 caracteres');
       hasError = true;
     }
     if (regPassword !== regConfirmPassword) {
@@ -684,23 +702,69 @@ export default function OnboardingContainer() {
       });
 
       if (response.success && response.data) {
-        const accessToken = response.data.access_token || response.data.accessToken || response.data.token;
-        clearOnboardingLocal();
-        localStorage.setItem('bankerpro_token', accessToken);
-        localStorage.setItem('bankerpro_user', JSON.stringify({
-          id: response.data.id,
-          email: response.data.email,
-          fullName: response.data.fullName || regFullName,
-          role: response.data.role,
-          onboardingCompleted: false
-        }));
-
-        setActiveView('checkout');
+        // O cadastro não autentica mais: a API manda um código para o e-mail e
+        // só devolve a sessão depois que ele é confirmado. É o que impede
+        // alguém de criar conta com o endereço de outra pessoa.
+        setVerifyEmail(response.data.email || regEmail);
+        setVerifyCode('');
+        setVerifyError('');
+        setActiveView('verify');
       }
     } catch (err) {
       showToast(err.message || 'Erro ao realizar cadastro.');
     } finally {
       setRegLoading(false);
+    }
+  };
+
+  const handleVerifyEmail = async (e) => {
+    e.preventDefault();
+    if (verifyCode.length !== 6) {
+      setVerifyError('Digite os 6 dígitos do código.');
+      return;
+    }
+
+    setVerifyLoading(true);
+    setVerifyError('');
+    try {
+      const response = await api.post('/auth/verify-otp', {
+        email: verifyEmail,
+        otpCode: verifyCode,
+      });
+
+      const dados = response?.data || response;
+      const accessToken = dados?.access_token || dados?.accessToken || dados?.token;
+      if (!accessToken) {
+        throw new Error('Não foi possível concluir a confirmação. Tente novamente.');
+      }
+
+      clearOnboardingLocal();
+      localStorage.setItem('bankerpro_token', accessToken);
+      localStorage.setItem('bankerpro_user', JSON.stringify({
+        id: dados.user?.id,
+        email: dados.user?.email || verifyEmail,
+        fullName: dados.user?.fullName || regFullName,
+        role: dados.user?.role,
+        onboardingCompleted: false,
+      }));
+
+      setActiveView('checkout');
+    } catch (err) {
+      setVerifyError(err.message || 'Código inválido ou expirado.');
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setVerifyResending(true);
+    try {
+      await api.post('/auth/resend-otp', { email: verifyEmail });
+      showToast('Enviamos um código novo para o seu e-mail.');
+    } catch (err) {
+      showToast(err.message || 'Não foi possível reenviar o código.');
+    } finally {
+      setVerifyResending(false);
     }
   };
 
@@ -819,7 +883,8 @@ export default function OnboardingContainer() {
   const layoutClasses = [
     styles.splitLayout,
     // Gate = 70/30 (welcome). Login/register/forgot/checkout = painel ativo 50/50.
-    activeView === 'login' || activeView === 'register' || activeView === 'forgot' || activeView === 'checkout'
+    activeView === 'login' || activeView === 'register' || activeView === 'forgot' ||
+    activeView === 'verify' || activeView === 'checkout'
       ? styles.formActive
       : '',
     activeView === 'checkout' ? styles.checkoutActive : '',
@@ -1011,6 +1076,54 @@ export default function OnboardingContainer() {
                 <span>Novo no Closer.IA? </span>
                 <button className={styles.accentTextBtn} onClick={() => setActiveView('register')}>
                   Crie sua conta agora
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* VIEW: Confirmação de e-mail (pós-cadastro) */}
+          {activeView === 'verify' && (
+            <div className={styles.formView}>
+              <div className={styles.authHeader}>
+                <h1 className={styles.systemLogo}>Closer.IA</h1>
+                <p className={styles.formSubtitle}>
+                  Enviamos um código de 6 dígitos para <strong>{verifyEmail}</strong>. Digite-o para ativar sua conta.
+                </p>
+              </div>
+
+              <form onSubmit={handleVerifyEmail} className={styles.formStack}>
+                <OtpInput
+                  value={verifyCode}
+                  onChange={(v) => { setVerifyCode(v); if (verifyError) setVerifyError(''); }}
+                  length={6}
+                  error={Boolean(verifyError)}
+                  autoFocus
+                />
+                {verifyError && (
+                  <p style={{ textAlign: 'center', color: 'var(--color-danger)', fontSize: 'var(--text-sm)', margin: 0 }}>
+                    {verifyError}
+                  </p>
+                )}
+
+                <Button variant="primary" type="submit" size="lg" loading={verifyLoading} className={styles.submitBtn}>
+                  Confirmar e-mail
+                </Button>
+              </form>
+
+              <div className={styles.authFooter}>
+                <span>Não recebeu? </span>
+                <button
+                  className={styles.accentTextBtn}
+                  onClick={handleResendVerification}
+                  disabled={verifyResending}
+                >
+                  {verifyResending ? 'Enviando...' : 'Reenviar código'}
+                </button>
+              </div>
+
+              <div style={{ textAlign: 'center', marginTop: 12 }}>
+                <button className={styles.accentTextBtn} onClick={() => setActiveView('register')}>
+                  Usar outro e-mail
                 </button>
               </div>
             </div>
