@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import AppShell from '@/components/organisms/AppShell/AppShell';
 import PlanUpgradeGate from '@/components/organisms/PlanUpgradeGate/PlanUpgradeGate';
 import Spinner from '@/components/atoms/Spinner/Spinner';
-import { api } from '@/lib/api';
+import { api, AUTH_EXPIRED_EVENT } from '@/lib/api';
 import { isOnboardingCompleted } from '@/lib/onboarding';
 
 export default function PlatformLayout({ children }) {
@@ -27,6 +27,14 @@ export default function PlatformLayout({ children }) {
         navigator.storage.persist().catch(() => {});
       });
   }, []);
+
+  // Se a sessão cair no meio do uso (não só na entrada), volta para o login em
+  // vez de deixar as telas falhando uma a uma.
+  useEffect(() => {
+    const aoExpirar = () => router.replace('/?view=gate');
+    window.addEventListener(AUTH_EXPIRED_EVENT, aoExpirar);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, aoExpirar);
+  }, [router]);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,7 +66,19 @@ export default function PlatformLayout({ children }) {
         localStorage.setItem('bankerpro_user', JSON.stringify(nextUser));
         incomplete = !isOnboardingCompleted(data);
         meOk = true;
-      } catch {
+      } catch (err) {
+        // Token recusado pela API (segredo de assinatura trocado, conta removida
+        // ou desativada): o cache local não serve de nada, porque toda chamada
+        // seguinte também vai falhar. Manda para o login em vez de deixar o
+        // usuário numa plataforma com as telas vazias — os dados continuam lá,
+        // é só entrar de novo.
+        if (err?.status === 401) {
+          if (!cancelled) router.replace('/?view=gate');
+          return;
+        }
+
+        // Qualquer outra falha (rede, API fora do ar) mantém o modo offline com
+        // o último usuário conhecido.
         try {
           const raw = localStorage.getItem('bankerpro_user');
           nextUser = raw ? JSON.parse(raw) : null;
