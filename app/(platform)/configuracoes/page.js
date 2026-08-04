@@ -161,8 +161,16 @@ export default function ConfiguracoesPage() {
 
   const handleRevoke = async (sessionId) => {
     try {
-      await api.delete(`/settings/sessions/${sessionId}`);
-      showToast('Sessão encerrada.');
+      const res = await api.delete(`/settings/sessions/${sessionId}`);
+
+      // Encerrar uma sessão invalida os tokens de todos os aparelhos — é isso que
+      // realmente derruba o aparelho perdido, em vez de só sumir com ele da lista.
+      // A API devolve um token novo para este aparelho; sem guardá-lo aqui, quem
+      // clicou seria deslogado junto.
+      const novoToken = (res?.data || res)?.accessToken;
+      if (novoToken) localStorage.setItem('bankerpro_token', novoToken);
+
+      showToast('Sessão encerrada. O outro aparelho precisará entrar de novo.');
       await loadSessions();
     } catch (err) {
       showToast(err.message || 'Não foi possível encerrar a sessão.', 'error');
